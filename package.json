@@ -1,13 +1,13 @@
 {
-  "name": "nichescan",
-  "version": "1.2.0",
-  "description": "Scan an X account. Get their niches. Share the card.",
+  "name": "cloutradar",
+  "version": "2.0.0",
+  "description": "CloutRadar — Scan an X account. Get their niches & clout radar. Share the card.",
   "scripts": {
     "start": "python server.py",
     "dev": "python server.py",
     "test": "python test_backend.py"
   },
-  "keywords": ["twitter", "x", "niche", "scanner", "analytics", "fastapi"],
-  "author": "xlee",
+  "keywords": ["twitter", "x", "niche", "clout", "radar", "scanner", "analytics", "fastapi"],
+  "author": "Sifat",
   "license": "MIT"
 }

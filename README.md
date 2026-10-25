@@ -1,13 +1,13 @@
-# NicheScan Pro 🐧⚡
+# CloutRadar 📡⚡
 
 > **Next-Gen X Account Niche & Clout Intelligence Platform**  
 > Go beyond basic keyword scanning. Analyze deep niches, Clout Hexagon Radars, timeline vibes, AI roasts, and battle profiles in the Versus Arena with 1-click viral share cards.
 
 ---
 
-## 🌟 What Makes NicheScan Pro Distinct?
+## 🌟 What Makes CloutRadar Distinct?
 
-Rather than being a simple clone, **NicheScan Pro** elevates the experience with original, high-utility, viral capabilities designed specifically for Crypto Twitter & Tech communities:
+**CloutRadar** is an original, high-utility, viral intelligence engine designed specifically for Crypto Twitter, Tech creators, and digital citizens:
 
 ### 1. ⚡ Solo Scanner & ⚔️ Versus Battle Arena
 - **Solo Scanner**: Deep profile autopsy, niche percentage breakdown, and clout metrics.
@@ -87,7 +87,7 @@ OK
 
 ## ☁️ Deploying to Vercel (When Ready)
 
-1. This repository is already pushed to your private GitHub repo (`SifatHossain456/nichescan`).
+1. This repository is available publicly at `SifatHossain456/cloutradar`.
 2. Go to [Vercel](https://vercel.com/new) and click **Import**.
 3. Vercel automatically detects `vercel.json` and configures the Python runtime and static routing.
 4. Click **Deploy**!

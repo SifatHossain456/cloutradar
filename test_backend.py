@@ -3,7 +3,7 @@ import json
 from fastapi.testclient import TestClient
 from api.index import app
 
-class TestNicheScanPro(unittest.TestCase):
+class TestCloutRadar(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.client = TestClient(app)
@@ -78,7 +78,7 @@ class TestNicheScanPro(unittest.TestCase):
     def test_07_stats_and_static(self):
         resp_index = self.client.get("/")
         self.assertEqual(resp_index.status_code, 200)
-        self.assertIn("NICHESCAN", resp_index.text)
+        self.assertIn("CLOUTRADAR", resp_index.text)
 
         resp_stats = self.client.get("/stats/admin")
         self.assertEqual(resp_stats.status_code, 200)

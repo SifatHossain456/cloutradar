@@ -1,5 +1,5 @@
 /**
- * NicheScan Pro — Advanced CT Share & Intelligence Engine
+ * CloutRadar — Advanced X Niche & Clout Intelligence Engine
  */
 
 (function () {
@@ -183,7 +183,7 @@
     }
     if (dlEl && src) {
       dlEl.href = src;
-      dlEl.setAttribute("download", `nichescan-${currentScanData.username}-${currentFormat}.png`);
+      dlEl.setAttribute("download", `cloutradar-${currentScanData.username}-${currentFormat}.png`);
     }
   }
 
@@ -322,8 +322,8 @@
     const xBtn = $("#share-x");
     if (xBtn) {
       const top = data.niches && data.niches[0] ? data.niches[0].label : "CT Citizen";
-      const text = `I'm ${top} with a NicheScan score of ${data.overall_score} 🐧 check yours`;
-      const siteUrl = window.location.origin || "https://nichescan.app";
+      const text = `I'm ${top} with a CloutRadar score of ${data.overall_score} 📡 check yours`;
+      const siteUrl = window.location.origin;
       xBtn.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(siteUrl)}`;
     }
 
@@ -361,13 +361,13 @@
     const dl = $("#battle-download");
     if (dl && data.battle_card_data_url) {
       dl.href = data.battle_card_data_url;
-      dl.setAttribute("download", `nichescan-clash-${u1.username}-vs-${u2.username}.png`);
+      dl.setAttribute("download", `cloutradar-clash-${u1.username}-vs-${u2.username}.png`);
     }
 
     const shareX = $("#battle-share-x");
     if (shareX) {
       const text = `⚔️ CT CLASH: @${u1.username} (${u1.score}) vs @${u2.username} (${u2.score})! Victor: @${data.victor} 👑`;
-      const siteUrl = window.location.origin || "https://nichescan.app";
+      const siteUrl = window.location.origin;
       shareX.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(siteUrl)}`;
     }
 

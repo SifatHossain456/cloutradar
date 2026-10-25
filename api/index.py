@@ -12,7 +12,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, Red
 from pydantic import BaseModel, Field
 from PIL import Image, ImageDraw, ImageFont
 
-app = FastAPI(title="NicheScan Pro", version="2.0.0")
+app = FastAPI(title="CloutRadar", version="2.0.0")
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if not os.path.exists(os.path.join(ROOT_DIR, "index.html")):
@@ -35,7 +35,7 @@ class StatsDB:
             {"username": "xlee_istheking", "name": "xlee", "score": 66, "niche": "Poly Maxi", "avatar": "https://pbs.twimg.com/profile_images/2111387864193728512/djos7MWI_400x400.jpg"},
             {"username": "cobie", "name": "Cobie", "score": 91, "niche": "CT Legend", "avatar": "https://unavatar.io/x/cobie"}
         ]
-        self.stats_key = "nichescan_admin_secret"
+        self.stats_key = "cloutradar_admin_secret"
 
 stats_db = StatsDB()
 
@@ -596,7 +596,7 @@ def generate_landscape_card(username: str, display_name: str, bio: str, niches: 
         draw.text((z3_x + 20, m_y + 54), lbl, fill=(168, 155, 200), font=font_med)
         m_y += 105
 
-    draw.text((75, H - 75), "NicheScan", fill=(168, 155, 200), font=font_orbitron_sm)
+    draw.text((75, H - 75), "CloutRadar", fill=(168, 155, 200), font=font_orbitron_sm)
     draw.text((W - 140, H - 75), "© xlee", fill=(168, 155, 200), font=font_med)
 
     buf = io.BytesIO()
@@ -627,7 +627,7 @@ def generate_story_card(username: str, display_name: str, bio: str, niches: list
     font_pill = get_ttf("SpaceGrotesk-Bold.ttf", 28)
     font_tag = get_ttf("SpaceGrotesk-Bold.ttf", 20)
 
-    draw.text((90, 95), "NICHESCAN", fill=theme["accent"], font=font_orbitron_title)
+    draw.text((90, 95), "CLOUTRADAR", fill=theme["accent"], font=font_orbitron_title)
 
     av_size = 180
     av_box = [W//2 - av_size//2, 180, W//2 + av_size//2, 180 + av_size]
@@ -668,7 +668,7 @@ def generate_story_card(username: str, display_name: str, bio: str, niches: list
         draw.text((150, 1580), "🔥 CT VIBE CHECK", fill=theme["accent"], font=font_tag)
         draw.text((150, 1630), roast[:90], fill=(230, 225, 250), font=font_body)
 
-    draw.text((W//2, 1800), "Scan your account at nichescan.app", fill=(168, 155, 200), font=font_tag, anchor="mm")
+    draw.text((W//2, 1800), "Scan your account at cloutradar.app", fill=(168, 155, 200), font=font_tag, anchor="mm")
 
     buf = io.BytesIO()
     img.save(buf, format="PNG", optimize=True)
@@ -721,7 +721,7 @@ def generate_battle_card(u1: dict, u2: dict, theme_name: str = "cyber_violet") -
     draw.rounded_rectangle([W//2 - 220, 520, W//2 + 220, 580], radius=14, fill=(124, 58, 237, 220), outline=(196, 181, 253, 160), width=2)
     draw.text((W//2, 550), f"👑 CLOUT VICTOR: @{victor['username'].upper()}", fill=(255, 255, 255), font=font_sub, anchor="mm")
 
-    draw.text((W//2, H - 45), "NicheScan Battle Arena · nichescan.app", fill=(107, 98, 128), font=font_tag, anchor="mm")
+    draw.text((W//2, H - 45), "CloutRadar Battle Arena · cloutradar.app", fill=(107, 98, 128), font=font_tag, anchor="mm")
 
     buf = io.BytesIO()
     img.save(buf, format="PNG", optimize=True)
@@ -742,7 +742,7 @@ def fmt_metric(n: Optional[int]) -> str:
 
 @app.get("/api/health")
 async def health():
-    return {"ok": True, "service": "nichescan", "version": "2.0.0"}
+    return {"ok": True, "service": "cloutradar", "version": "2.0.0"}
 
 @app.get("/api/debug-path")
 async def debug_path(request: Request):
@@ -1051,7 +1051,7 @@ async def compare_accounts(req: CompareRequest):
 STATS_HTML = """<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NicheScan · stats</title>
+<title>CloutRadar · stats</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%23050508%27/%3E%3Ccircle cx=%2732%27 cy=%2732%27 r=%2717%27 fill=%27none%27 stroke=%27%237c3aed%27 stroke-width=%277%27/%3E%3Ccircle cx=%2732%27 cy=%2732%27 r=%276%27 fill=%27%23a78bfa%27/%3E%3C/svg%3E">
 <style>
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:#050508;
@@ -1067,7 +1067,7 @@ p{margin:0 0 18px;color:#a89bc8;font-size:14px}
 a{color:#a78bfa;text-decoration:none;font-size:13px;display:inline-block;margin-top:12px}
 </style></head><body>
 <div class="box">
-<h1>Niche<span>Scan</span> · stats</h1>
+<h1>Clout<span>Radar</span> · stats</h1>
 <p>Private analytics dashboard.</p>
 <div class="grid">
   <div class="card"><div class="val">{{SCANS}}</div><div class="lbl">Total Scans</div></div>
@@ -1093,7 +1093,7 @@ async def stats_view(path_key: str = "", key: str = "", format: str = ""):
         return HTMLResponse(content=html)
     
     prompt_html = f"""<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>NicheScan · stats</title>
+<html lang="en"><head><meta charset="utf-8"><title>CloutRadar · stats</title>
 <style>
 *{{box-sizing:border-box}}body{{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:#050508;color:#f5f3ff;font:16px "Space Grotesk",sans-serif}}
 .box{{width:100%;max-width:400px;background:rgba(18,16,28,.8);border:1px solid rgba(167,139,250,.25);border-radius:16px;padding:26px 22px}}
@@ -1101,7 +1101,7 @@ input{{width:100%;padding:13px;border-radius:12px;border:1px solid rgba(167,139,
 button{{margin-top:12px;width:100%;padding:13px;border:0;border-radius:12px;background:#7c3aed;color:#fff;font-weight:600;cursor:pointer}}
 </style></head><body>
 <form class="box" onsubmit="event.preventDefault(); location.href='/stats/' + encodeURIComponent(document.getElementById('k').value);">
-<h1>Niche<span>Scan</span> · stats</h1>
+<h1>Clout<span>Radar</span> · stats</h1>
 <p style="color:#a89bc8;font-size:14px">Private dashboard. Enter key (e.g. admin).</p>
 <input id="k" type="password" placeholder="Stats key" required>
 <button type="submit">Open stats</button>
@@ -1113,7 +1113,7 @@ async def stats_csv(key: str = ""):
     csv_data = "timestamp,event,handle\n"
     for item in stats_db.history[-150:]:
         csv_data += f"{item.get('time')},{item.get('event')},{item.get('handle')}\n"
-    return Response(content=csv_data, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=nichescan-stats.csv"})
+    return Response(content=csv_data, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=cloutradar-stats.csv"})
 
 # --- Static File Endpoints ---
 @app.get("/")
@@ -1121,7 +1121,7 @@ async def serve_index():
     index_path = os.path.join(ROOT_DIR, "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path, media_type="text/html")
-    return HTMLResponse("<h1>NicheScan Pro</h1>")
+    return HTMLResponse("<h1>CloutRadar</h1>")
 
 @app.get("/styles.css")
 async def serve_styles():
