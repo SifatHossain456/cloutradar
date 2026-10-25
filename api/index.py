@@ -264,9 +264,6 @@ def fetch_x_profile(username: str) -> Dict[str, Any]:
 
     if norm in PROFILE_CACHE:
         return PROFILE_CACHE[norm]
-    if norm in KNOWN_PROFILES:
-        PROFILE_CACHE[norm] = KNOWN_PROFILES[norm]
-        return KNOWN_PROFILES[norm]
 
     # Tier 1: Real-time official timeline intelligence scan (5.0s timeout)
     try:
@@ -319,10 +316,10 @@ def fetch_x_profile(username: str) -> Dict[str, Any]:
                         "screen_name": user.get("screen_name") or norm,
                         "name": user.get("name") or norm,
                         "description": user.get("description") or "Crypto & tech observer.",
-                        "followers": int(user.get("followers") or 0),
-                        "following": int(user.get("following") or 0),
-                        "tweets": int(user.get("tweets") or 0),
-                        "likes": int(user.get("likes") or 0),
+                        "followers": int(user.get("followers") or user.get("followers_count") or 0),
+                        "following": int(user.get("following") or user.get("friends_count") or 0),
+                        "tweets": int(user.get("tweets") or user.get("statuses_count") or 0),
+                        "likes": int(user.get("likes") or user.get("favourites_count") or 0),
                         "avatar_url": avatar_url,
                         "method": "fxtwitter live"
                     }
@@ -331,7 +328,12 @@ def fetch_x_profile(username: str) -> Dict[str, Any]:
     except Exception:
         pass
 
-    # Tier 3: Reliable synthetic fallback
+    # Tier 3: Known profiles offline fallback
+    if norm in KNOWN_PROFILES:
+        PROFILE_CACHE[norm] = KNOWN_PROFILES[norm]
+        return KNOWN_PROFILES[norm]
+
+    # Tier 4: Reliable synthetic fallback
     seed = sum(ord(c) for c in norm)
     followers_est = max(2400, (seed * 850) % 250000)
     res = {

@@ -1112,7 +1112,36 @@
           }
         }
       } catch (err) {
-        console.warn("Direct official scanner unreachable; engaging autonomous synthesis.", err);
+        console.warn("Direct official scanner unreachable; engaging live FxTwitter probe.", err);
+      }
+    }
+
+    // Layer 2.5: Direct FxTwitter live probe (CORS-enabled, 0.4s response, real followers & bio)
+    if (!data || !data.username) {
+      try {
+        setStep(`Querying live X profile for @${handle}...`, 80);
+        const fxRes = await fetch(`https://api.fxtwitter.com/${handle}`);
+        if (fxRes.ok) {
+          const fxData = await fxRes.json();
+          const user = fxData.user;
+          if (user && user.screen_name) {
+            const rawAvatar = user.avatar_url || "";
+            const avatarUrl = rawAvatar ? rawAvatar.replace("_normal.", "_400x400.") : `https://unavatar.io/x/${handle}`;
+            const fols = user.followers || user.followers_count || 0;
+            const tweets = user.tweets || user.statuses_count || 46;
+            data = {
+              username: user.screen_name,
+              display_name: user.name || user.screen_name,
+              bio: user.description || "",
+              avatar_url: avatarUrl,
+              followers: fols,
+              tweets: tweets,
+              likes: user.likes || 0
+            };
+          }
+        }
+      } catch (err) {
+        console.warn("Direct FxTwitter probe unreachable.", err);
       }
     }
 
