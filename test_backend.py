@@ -87,5 +87,22 @@ class TestCloutRadar(unittest.TestCase):
         resp_csv = self.client.get("/api/stats.csv")
         self.assertEqual(resp_csv.status_code, 200)
 
+    def test_08_xlee_and_fallback_resilience(self):
+        # Test xlee_istheking (the demo chip that previously 404ed)
+        resp1 = self.client.post("/api/scan", json={"username": "xlee_istheking", "theme": "cyber_violet"})
+        self.assertEqual(resp1.status_code, 200)
+        d1 = resp1.json()
+        self.assertEqual(d1["username"], "xlee_istheking")
+        self.assertTrue(d1["card_data_url"].startswith("data:image/png;base64,"))
+        self.assertGreater(d1["followers"], 1000)
+
+        # Test completely unknown username (should never 500 or return undefined)
+        resp2 = self.client.post("/api/scan", json={"username": "random_ghost_anon_998877", "theme": "cyber_violet"})
+        self.assertEqual(resp2.status_code, 200)
+        d2 = resp2.json()
+        self.assertEqual(d2["username"], "random_ghost_anon_998877")
+        self.assertTrue(d2["card_data_url"].startswith("data:image/png;base64,"))
+        self.assertIn("overall_score", d2)
+
 if __name__ == "__main__":
     unittest.main()

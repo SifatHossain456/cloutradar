@@ -1,1 +1,1 @@
-# NicheScan API package
+# CloutRadar API package

@@ -1,4 +1,4 @@
-/* NicheScan — sparse falling autumn leaves (decorative, never blocks clicks). */
+/* CloutRadar — sparse falling autumn leaves (decorative, never blocks clicks). */
 (function () {
   if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   var mobile = matchMedia("(max-width: 767px)").matches;
