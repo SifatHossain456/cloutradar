@@ -228,6 +228,27 @@
     return "last 90d · 46 posts";
   }
 
+  // Smooth ease-out numerical count-up animation
+  function animateValue(element, start, end, duration, formatFn) {
+    if (!element) return;
+    const startTime = performance.now();
+    const range = Number(end) - Number(start);
+    function update(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // easeOutCubic
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const current = Number(start) + range * ease;
+      element.textContent = formatFn ? formatFn(current) : Math.round(current);
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      } else {
+        element.textContent = formatFn ? formatFn(end) : Math.round(end);
+      }
+    }
+    requestAnimationFrame(update);
+  }
+
   // Hash-based deterministic number generator for fallback synthesis
   function hashString(str) {
     let hash = 0;
@@ -247,17 +268,33 @@
     const displayName = (data && data.display_name) || (data && data.name) || handle;
     const bio = (data && data.bio) ? data.bio : "Digital citizen & timeline explorer.";
     const followers = (data && data.followers != null && data.followers > 0)
-      ? data.followers
+      ? Number(data.followers)
       : (5000 + (h % 95000));
     const impressions = (data && data.impressions != null && data.impressions > 0)
-      ? data.impressions
+      ? Number(data.impressions)
       : Math.round(followers * (14 + (h % 22)));
     const erMedian = (data && data.er_median != null)
       ? Number(data.er_median)
       : (0.028 + ((h % 40) / 1000));
     const overallScore = (data && data.overall_score != null && data.overall_score > 0)
-      ? data.overall_score
+      ? Number(data.overall_score)
       : (55 + (h % 35));
+
+    // 6-Metric Extra Real Attributes
+    const following = (data && data.following != null) ? Number(data.following) : Math.round(followers * 0.18);
+    const followingStr = (data && data.following_str) ? data.following_str : fmtNum(following);
+    const totalTweets = (data && (data.total_tweets != null || data.tweets != null))
+      ? Number(data.total_tweets || data.tweets)
+      : (46 + (h % 350));
+    const tweetsStr = (data && data.tweets_str) ? data.tweets_str : fmtNum(totalTweets);
+    const likesGiven = (data && (data.likes_given != null || data.likes != null))
+      ? Number(data.likes_given || data.likes)
+      : (120 + (h % 1500));
+    const mediaCount = (data && data.media_count != null) ? Number(data.media_count) : (12 + (h % 80));
+    const joinedEra = (data && data.joined_era) ? data.joined_era : "Veteran CT";
+    const alphaRatio = (data && data.alpha_ratio)
+      ? data.alpha_ratio
+      : (followers > 0 ? (followers / Math.max(1, following)).toFixed(1) + "x" : "1.0x");
 
     const defaultNiches = [
       [
@@ -348,6 +385,14 @@
       impressions,
       er_median: erMedian,
       overall_score: overallScore,
+      following,
+      following_str: followingStr,
+      total_tweets: totalTweets,
+      tweets_str: tweetsStr,
+      likes_given: likesGiven,
+      media_count: mediaCount,
+      joined_era: joinedEra,
+      alpha_ratio: alphaRatio,
       niches,
       secondary_niches: secondaryNiches,
       radar_scores: radar,
@@ -455,7 +500,7 @@
       const avatarY = margin + 90;
       const avatarR = 48;
 
-      // Stylized Monogram Avatar
+      // Avatar: Photo or Stylized Monogram
       ctx.save();
       const circleGrad = ctx.createLinearGradient(leftX, avatarY, leftX + avatarR * 2, avatarY + avatarR * 2);
       circleGrad.addColorStop(0, t.primary);
@@ -468,12 +513,30 @@
       ctx.strokeStyle = "#ffffff";
       ctx.stroke();
 
-      const initial = (profile.display_name || profile.username || "C").charAt(0).toUpperCase();
-      ctx.font = "bold 42px 'Space Grotesk', sans-serif";
-      ctx.fillStyle = "#ffffff";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(initial, leftX + avatarR, avatarY + avatarR);
+      const liveImg = $("#avatar-img");
+      let drewImg = false;
+      if (liveImg && liveImg.complete && liveImg.naturalWidth > 0 && !liveImg.classList.contains("hidden")) {
+        try {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(leftX + avatarR, avatarY + avatarR, avatarR - 1, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.drawImage(liveImg, leftX, avatarY, avatarR * 2, avatarR * 2);
+          ctx.restore();
+          drewImg = true;
+        } catch (_) {
+          drewImg = false;
+        }
+      }
+
+      if (!drewImg) {
+        const initial = (profile.display_name || profile.username || "C").charAt(0).toUpperCase();
+        ctx.font = "bold 42px 'Space Grotesk', sans-serif";
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(initial, leftX + avatarR, avatarY + avatarR);
+      }
       ctx.restore();
 
       // Names
@@ -494,15 +557,18 @@
       ctx.fillStyle = "#94a3b8";
       const cleanBio = profile.bio.replace(/[\r\n]+/g, " ");
       const bioText = cleanBio.length > 110 ? cleanBio.slice(0, 107) + "…" : cleanBio;
-      ctx.fillText(bioText, leftX, avatarY + avatarR * 2 + 40);
+      ctx.fillText(bioText, leftX, avatarY + avatarR * 2 + 36);
       ctx.restore();
 
-      // 3 Key Metrics Cards
-      const metricsY = avatarY + avatarR * 2 + 75;
+      // 6 Key Metrics Grid (2 rows x 3 cols)
+      const metricsY = avatarY + avatarR * 2 + 65;
       const metricBoxes = [
         { label: "Followers", val: fmtNum(profile.followers) },
         { label: "Eng Rate", val: (profile.er_median * 100).toFixed(1) + "%" },
-        { label: "Impressions", val: fmtNum(profile.impressions) }
+        { label: "Impressions", val: fmtNum(profile.impressions) },
+        { label: "Posts", val: profile.tweets_str || fmtNum(profile.total_tweets || 0) },
+        { label: "Alpha Ratio", val: profile.alpha_ratio || "1.0x" },
+        { label: "Era", val: profile.joined_era || "Veteran" }
       ];
 
       // Basis note above metrics
@@ -513,25 +579,28 @@
       ctx.restore();
 
       metricBoxes.forEach((m, idx) => {
-        const boxX = leftX + idx * 115;
-        const boxW = 105;
-        const boxH = 68;
+        const col = idx % 3;
+        const row = Math.floor(idx / 3);
+        const boxX = leftX + col * 118;
+        const boxY = metricsY + row * 62;
+        const boxW = 110;
+        const boxH = 55;
 
         ctx.save();
         ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
         ctx.beginPath();
-        ctx.roundRect(boxX, metricsY, boxW, boxH, 10);
+        ctx.roundRect(boxX, boxY, boxW, boxH, 10);
         ctx.fill();
         ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
         ctx.stroke();
 
-        ctx.font = "bold 18px 'Space Grotesk', system-ui, sans-serif";
+        ctx.font = "bold 16px 'Space Grotesk', system-ui, sans-serif";
         ctx.fillStyle = "#ffffff";
-        ctx.fillText(m.val, boxX + 12, metricsY + 32);
+        ctx.fillText(m.val, boxX + 10, boxY + 27);
 
-        ctx.font = "11px 'Space Grotesk', sans-serif";
+        ctx.font = "10px 'Space Grotesk', sans-serif";
         ctx.fillStyle = "#94a3b8";
-        ctx.fillText(m.label, boxX + 12, metricsY + 52);
+        ctx.fillText(m.label.toUpperCase(), boxX + 10, boxY + 45);
         ctx.restore();
       });
 
@@ -666,6 +735,7 @@
       const avatarR = 80;
       const avatarY = margin + 140;
 
+      // Avatar: Photo or Stylized Monogram
       ctx.save();
       const circleGrad = ctx.createLinearGradient(cx - avatarR, avatarY, cx + avatarR, avatarY + avatarR * 2);
       circleGrad.addColorStop(0, t.primary);
@@ -678,12 +748,30 @@
       ctx.strokeStyle = "#ffffff";
       ctx.stroke();
 
-      const initial = (profile.display_name || profile.username || "C").charAt(0).toUpperCase();
-      ctx.font = "bold 72px 'Space Grotesk', sans-serif";
-      ctx.fillStyle = "#ffffff";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(initial, cx, avatarY + avatarR);
+      const liveImg = $("#avatar-img");
+      let drewImg = false;
+      if (liveImg && liveImg.complete && liveImg.naturalWidth > 0 && !liveImg.classList.contains("hidden")) {
+        try {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(cx, avatarY + avatarR, avatarR - 2, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.drawImage(liveImg, cx - avatarR, avatarY, avatarR * 2, avatarR * 2);
+          ctx.restore();
+          drewImg = true;
+        } catch (_) {
+          drewImg = false;
+        }
+      }
+
+      if (!drewImg) {
+        const initial = (profile.display_name || profile.username || "C").charAt(0).toUpperCase();
+        ctx.font = "bold 72px 'Space Grotesk', sans-serif";
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(initial, cx, avatarY + avatarR);
+      }
       ctx.restore();
 
       // Names
@@ -751,29 +839,32 @@
         ctx.restore();
       });
 
-      // 3 Metrics Rows
-      const metricStartY = nicheStartY + 270;
+      // 6 Metrics Rows
+      const metricStartY = nicheStartY + 250;
       const metrics = [
         { label: `Followers (${basisStr})`, val: fmtNum(profile.followers) },
         { label: "Engagement Rate", val: (profile.er_median * 100).toFixed(1) + "%" },
-        { label: "Impressions", val: fmtNum(profile.impressions) }
+        { label: "Impressions", val: fmtNum(profile.impressions) },
+        { label: "Lifetime Posts", val: profile.tweets_str || fmtNum(profile.total_tweets || 0) },
+        { label: "Alpha Ratio", val: profile.alpha_ratio || "1.0x" },
+        { label: "Account Era", val: profile.joined_era || "Veteran" }
       ];
       metrics.forEach((m, idx) => {
-        const my = metricStartY + idx * 72;
+        const my = metricStartY + idx * 56;
         ctx.save();
-        ctx.font = "20px 'Space Grotesk', sans-serif";
+        ctx.font = "18px 'Space Grotesk', sans-serif";
         ctx.fillStyle = "#94a3b8";
-        ctx.fillText(m.label, margin + 80, my + 30);
+        ctx.fillText(m.label, margin + 80, my + 26);
 
-        ctx.font = "bold 26px 'Space Grotesk', monospace";
+        ctx.font = "bold 22px 'Space Grotesk', monospace";
         ctx.fillStyle = "#ffffff";
         ctx.textAlign = "right";
-        ctx.fillText(m.val, width - margin - 80, my + 30);
+        ctx.fillText(m.val, width - margin - 80, my + 26);
         ctx.restore();
       });
 
       // Roast Quote
-      const roastY = metricStartY + 250;
+      const roastY = metricStartY + 6 * 56 + 25;
       ctx.save();
       ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
       ctx.beginPath();
@@ -874,7 +965,7 @@
       userPts.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
     });
 
-    svg += `<polygon points="${userPts.join(' ')}" fill="url(#radar-glow)" stroke="var(--theme-bright)" stroke-width="2.5"/>`;
+    svg += `<polygon points="${userPts.join(' ')}" fill="url(#radar-glow)" stroke="var(--theme-bright)" stroke-width="2.5" class="radar-data-poly"/>`;
     userPts.forEach((pt) => {
       const [px, py] = pt.split(',');
       svg += `<circle cx="${px}" cy="${py}" r="4" fill="#fff" stroke="var(--theme-primary)" stroke-width="2"/>`;
@@ -929,11 +1020,20 @@
       }
     }
 
-    $("#overall-score").textContent = String(data.overall_score);
-    $("#m-followers").textContent = fmtNum(data.followers);
+    // Animated Numerical Displays
+    animateValue($("#overall-score"), 0, data.overall_score, 850, (v) => String(Math.round(v)));
+    animateValue($("#m-followers"), 0, data.followers, 900, fmtNum);
     const er = Number(data.er_median);
     $("#m-eng").textContent = er > 0 ? (er * 100).toFixed(1) + "%" : "12.4%";
-    $("#m-views").textContent = fmtNum(data.impressions);
+    animateValue($("#m-views"), 0, data.impressions, 950, fmtNum);
+
+    // 6-Metric Intelligence Matrix Real Statistics
+    const postsEl = $("#m-posts");
+    if (postsEl) postsEl.textContent = data.tweets_str || fmtNum(data.total_tweets || 0);
+    const alphaEl = $("#m-following");
+    if (alphaEl) alphaEl.textContent = data.alpha_ratio || "1.0x";
+    const eraEl = $("#m-era");
+    if (eraEl) eraEl.textContent = data.joined_era || "Veteran";
 
     const basisEl = $("#m-basis");
     if (basisEl) {
@@ -994,18 +1094,26 @@
     $("#p1-avatar").src = u1.avatar_url || `https://unavatar.io/x/${u1.username}`;
     $("#p1-name").textContent = u1.display_name;
     $("#p1-handle").textContent = `@${u1.username}`;
-    $("#p1-score").textContent = u1.score;
+    animateValue($("#p1-score"), 0, u1.score, 750, (v) => String(Math.round(v)));
     $("#p1-niche").textContent = u1.top_niche;
     $("#p1-followers").textContent = u1.followers_str;
     $("#p1-er").textContent = u1.er_str;
+    const p1Imp = $("#p1-imp");
+    if (p1Imp) p1Imp.textContent = u1.impressions_str || fmtNum(u1.impressions || 0);
+    const p1Posts = $("#p1-posts");
+    if (p1Posts) p1Posts.textContent = u1.tweets_str || fmtNum(u1.tweets || u1.total_tweets || 0);
 
     $("#p2-avatar").src = u2.avatar_url || `https://unavatar.io/x/${u2.username}`;
     $("#p2-name").textContent = u2.display_name;
     $("#p2-handle").textContent = `@${u2.username}`;
-    $("#p2-score").textContent = u2.score;
+    animateValue($("#p2-score"), 0, u2.score, 750, (v) => String(Math.round(v)));
     $("#p2-niche").textContent = u2.top_niche;
     $("#p2-followers").textContent = u2.followers_str;
     $("#p2-er").textContent = u2.er_str;
+    const p2Imp = $("#p2-imp");
+    if (p2Imp) p2Imp.textContent = u2.impressions_str || fmtNum(u2.impressions || 0);
+    const p2Posts = $("#p2-posts");
+    if (p2Posts) p2Posts.textContent = u2.tweets_str || fmtNum(u2.tweets || u2.total_tweets || 0);
 
     $("#victor-name").textContent = `@${data.victor.toUpperCase()}`;
 
@@ -1157,6 +1265,43 @@
     renderResults(data);
   }
 
+  // Live account resolver fallback for client-side offline execution
+  async function fetchLiveAccount(handle) {
+    try {
+      const upRes = await fetch("https://nichescan-mu.vercel.app/api/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: handle, src: "typed" })
+      });
+      if (upRes.ok) {
+        const d = await upRes.json();
+        if (d && d.username) return d;
+      }
+    } catch (_) {}
+    try {
+      const fxRes = await fetch(`https://api.fxtwitter.com/${handle}`);
+      if (fxRes.ok) {
+        const fxData = await fxRes.json();
+        const user = fxData.user;
+        if (user && user.screen_name) {
+          const rawAvatar = user.avatar_url || "";
+          const avatarUrl = rawAvatar ? rawAvatar.replace("_normal.", "_400x400.") : `https://unavatar.io/x/${handle}`;
+          return {
+            username: user.screen_name,
+            display_name: user.name || user.screen_name,
+            bio: user.description || "",
+            avatar_url: avatarUrl,
+            followers: user.followers || user.followers_count || 0,
+            following: user.following || user.friends_count || 0,
+            tweets: user.tweets || user.statuses_count || 0,
+            likes: user.likes || 0
+          };
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
   // --- Battle Execution ---
   async function battle(u1, u2) {
     const p1 = normalizeUsername(u1);
@@ -1182,8 +1327,9 @@
       renderBattleResults(data);
     } catch (e) {
       battleBtn.disabled = false;
-      const s1 = safeProfile(null, p1);
-      const s2 = safeProfile(null, p2);
+      const [raw1, raw2] = await Promise.all([fetchLiveAccount(p1), fetchLiveAccount(p2)]);
+      const s1 = safeProfile(raw1, p1);
+      const s2 = safeProfile(raw2, p2);
       const victor = s1.overall_score >= s2.overall_score ? p1 : p2;
       renderBattleResults({
         user1: {
@@ -1191,8 +1337,13 @@
           display_name: s1.display_name,
           score: s1.overall_score,
           top_niche: s1.niches[0].label,
+          followers: s1.followers,
           followers_str: fmtNum(s1.followers),
           er_str: (s1.er_median * 100).toFixed(1) + "%",
+          impressions: s1.impressions,
+          impressions_str: fmtNum(s1.impressions),
+          tweets: s1.total_tweets,
+          tweets_str: s1.tweets_str || fmtNum(s1.total_tweets),
           avatar_url: s1.avatar_url
         },
         user2: {
@@ -1200,8 +1351,13 @@
           display_name: s2.display_name,
           score: s2.overall_score,
           top_niche: s2.niches[0].label,
+          followers: s2.followers,
           followers_str: fmtNum(s2.followers),
           er_str: (s2.er_median * 100).toFixed(1) + "%",
+          impressions: s2.impressions,
+          impressions_str: fmtNum(s2.impressions),
+          tweets: s2.total_tweets,
+          tweets_str: s2.tweets_str || fmtNum(s2.total_tweets),
           avatar_url: s2.avatar_url
         },
         victor: victor,

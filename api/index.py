@@ -311,15 +311,25 @@ def fetch_x_profile(username: str) -> Dict[str, Any]:
                 if user and user.get("screen_name"):
                     raw_avatar = user.get("avatar_url") or ""
                     avatar_url = raw_avatar.replace("_normal.", "_400x400.") if raw_avatar else f"https://unavatar.io/x/{norm}"
+                    fols = int(user.get("followers") or user.get("followers_count") or 0)
+                    following = int(user.get("following") or user.get("friends_count") or 0)
+                    tweets = int(user.get("tweets") or user.get("statuses_count") or 0)
+                    likes = int(user.get("likes") or user.get("favourites_count") or 0)
+                    media_count = int(user.get("media_count") or 0)
+                    joined = user.get("joined") or ""
+                    verified = bool(user.get("verification", {}).get("verified") if isinstance(user.get("verification"), dict) else False)
                     res = {
                         "found": True,
                         "screen_name": user.get("screen_name") or norm,
                         "name": user.get("name") or norm,
                         "description": user.get("description") or "Crypto & tech observer.",
-                        "followers": int(user.get("followers") or user.get("followers_count") or 0),
-                        "following": int(user.get("following") or user.get("friends_count") or 0),
-                        "tweets": int(user.get("tweets") or user.get("statuses_count") or 0),
-                        "likes": int(user.get("likes") or user.get("favourites_count") or 0),
+                        "followers": fols,
+                        "following": following,
+                        "tweets": tweets,
+                        "likes": likes,
+                        "media_count": media_count,
+                        "joined": joined,
+                        "verified": verified,
                         "avatar_url": avatar_url,
                         "method": "fxtwitter live"
                     }
@@ -852,6 +862,26 @@ def build_full_profile_result(user_info: dict, theme: str) -> dict:
         superpower = analysis["superpower"]
         kryptonite = analysis["kryptonite"]
 
+    following = int(user_info.get("following", 0))
+    total_tweets = int(user_info.get("tweets", 0))
+    likes_given = int(user_info.get("likes", 0))
+    media_count = int(user_info.get("media_count", 0))
+    joined_date = user_info.get("joined", "")
+    verified = bool(user_info.get("verified", False))
+
+    following_str = fmt_metric(following) if following > 0 else "—"
+    tweets_str = fmt_metric(total_tweets) if total_tweets > 0 else (f"{post_n} posts" if post_n else "—")
+    ratio_val = round(followers / max(1, following), 2) if following > 0 else 1.0
+    ratio_str = f"{ratio_val:.1f}x"
+
+    joined_era = "CT Citizen"
+    if joined_date:
+        try:
+            dt = datetime.strptime(joined_date, "%a %b %d %H:%M:%S %z %Y")
+            joined_era = dt.strftime("%b %Y")
+        except Exception:
+            joined_era = str(joined_date)[:10]
+
     followers_str = fmt_metric(followers)
     er_str = f"{er_val * 100:.1f}%" if (er_val * 100) >= 10 else f"{er_val * 100:.2f}%"
     imp_str = fmt_metric(impressions)
@@ -909,6 +939,15 @@ def build_full_profile_result(user_info: dict, theme: str) -> dict:
             "weights": {"followers": 0.35, "impressions": 0.25, "er": 0.25, "content": 0.15}
         },
         "followers": followers,
+        "following": following,
+        "following_str": following_str,
+        "total_tweets": total_tweets,
+        "tweets_str": tweets_str,
+        "likes_given": likes_given,
+        "media_count": media_count,
+        "joined_era": joined_era,
+        "verified": verified,
+        "alpha_ratio": ratio_str,
         "likes": user_info.get("likes", 0),
         "reposts": int(followers * 0.02),
         "replies": int(followers * 0.01),
@@ -918,6 +957,9 @@ def build_full_profile_result(user_info: dict, theme: str) -> dict:
         "views_per_post": int(impressions / max(1, post_n)),
         "eng_rate": er_val,
         "er_median": er_val,
+        "er_str": er_str,
+        "followers_str": followers_str,
+        "imp_str": imp_str,
         "er_sample_n": 46,
         "impressions": impressions,
         "imp_posts_n": post_n,
@@ -931,6 +973,7 @@ def build_full_profile_result(user_info: dict, theme: str) -> dict:
         "theme": theme,
         "sample_n": 46,
         "metric_basis": "median",
+        "basis_str": basis_str,
         "scanned_at": now_ts,
         "lock_expires_at": now_ts + 86400,
         "card_url": "",
@@ -1073,31 +1116,35 @@ async def compare_accounts(req: CompareRequest):
 
     p1 = fetch_x_profile(u1_name)
     p2 = fetch_x_profile(u2_name)
-    a1 = analyze_profile(p1)
-    a2 = analyze_profile(p2)
+    res1 = build_full_profile_result(p1, theme)
+    res2 = build_full_profile_result(p2, theme)
 
     data1 = {
-        "username": p1["screen_name"],
-        "display_name": p1["name"],
-        "avatar_url": p1.get("avatar_url", ""),
-        "score": a1["overall_score"],
-        "top_niche": a1["niches"][0]["label"] if a1["niches"] else "General",
-        "followers": p1.get("followers", 0),
-        "followers_str": fmt_metric(p1.get("followers", 0)),
-        "er_str": f"{a1['er_median'] * 100:.1f}%",
-        "radar": a1["radar_scores"]
+        "username": res1["username"],
+        "display_name": res1["display_name"],
+        "avatar_url": res1.get("avatar_url", ""),
+        "score": res1["overall_score"],
+        "top_niche": res1["niches"][0]["label"] if res1["niches"] else "General",
+        "followers": res1.get("followers", 0),
+        "followers_str": res1.get("followers_str", fmt_metric(res1.get("followers", 0))),
+        "er_str": res1.get("er_str", "4.2%"),
+        "impressions_str": fmt_metric(res1.get("impressions", 0)),
+        "tweets_str": res1.get("tweets_str", "—"),
+        "radar": res1.get("radar_scores", {})
     }
 
     data2 = {
-        "username": p2["screen_name"],
-        "display_name": p2["name"],
-        "avatar_url": p2.get("avatar_url", ""),
-        "score": a2["overall_score"],
-        "top_niche": a2["niches"][0]["label"] if a2["niches"] else "General",
-        "followers": p2.get("followers", 0),
-        "followers_str": fmt_metric(p2.get("followers", 0)),
-        "er_str": f"{a2['er_median'] * 100:.1f}%",
-        "radar": a2["radar_scores"]
+        "username": res2["username"],
+        "display_name": res2["display_name"],
+        "avatar_url": res2.get("avatar_url", ""),
+        "score": res2["overall_score"],
+        "top_niche": res2["niches"][0]["label"] if res2["niches"] else "General",
+        "followers": res2.get("followers", 0),
+        "followers_str": res2.get("followers_str", fmt_metric(res2.get("followers", 0))),
+        "er_str": res2.get("er_str", "4.2%"),
+        "impressions_str": fmt_metric(res2.get("impressions", 0)),
+        "tweets_str": res2.get("tweets_str", "—"),
+        "radar": res2.get("radar_scores", {})
     }
 
     battle_card = generate_battle_card(data1, data2, theme_name=theme)
