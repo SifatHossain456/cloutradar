@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NicheScan</title>
+  <meta name="description" content="Scan an X account. Get their niches. Share the card." />
+  <meta name="theme-color" content="#0a0a0f" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23050508'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='%237c3aed' stroke-width='7'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%23a78bfa'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+  <div class="bg-glow bg-glow--2" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <div class="page">
+    <header class="site-header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">NICHESCAN</span>
+      </div>
+    </header>
+
+    <main>
+      <!-- Hero -->
+      <section class="hero" id="hero">
+        <h1 class="display">
+          <span>WHAT'S THEIR</span>
+          <span>NICHE?</span>
+        </h1>
+        <p class="subcopy">Scan an @ &rarr; get niches &rarr; download the card</p>
+
+        <form class="scan-card" id="scan-form" autocomplete="off">
+          <label class="input-wrap" for="username">
+            <span class="at-prefix" aria-hidden="true">@</span>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              inputmode="text"
+              spellcheck="false"
+              maxlength="40"
+              placeholder="username"
+              aria-label="X username"
+              required
+            />
+          </label>
+          <button type="submit" class="btn-primary" id="scan-btn">Scan</button>
+        </form>
+
+        <div class="demos" id="demos">
+          <div class="demo-chips" id="demo-chips"></div>
+        </div>
+      </section>
+
+      <!-- Scanning -->
+      <section class="panel scanning hidden" id="scanning" aria-live="polite">
+        <div class="scan-status-card peng-loader">
+          <div class="peng-stage" aria-hidden="true">
+            <span class="peng-radar"></span>
+            <span class="peng-ring"></span>
+            <span class="peng-scanline"></span>
+            <img class="peng-img" src="/penguin.webp" alt="" width="248" height="300" />
+            <img class="peng-pfp" id="loader-pfp" alt="" referrerpolicy="no-referrer" />
+          </div>
+          <p class="scan-status" id="scan-status">Scanning&hellip;</p>
+          <div class="progress-track">
+            <div class="progress-bar" id="progress-bar"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Results — R3ACH-style dashboard -->
+      <section class="panel results hidden" id="results" aria-live="polite">
+        <div class="dash-wrap">
+          <div class="dash-actions">
+            <button type="button" class="btn-ghost" id="scan-another">&larr; Back</button>
+            <div class="dash-actions-right" id="share-block">
+              <button type="button" class="btn-ghost" id="card-share">Copy image</button>
+              <a class="btn-download" id="card-download" download>Download</a>
+              <a class="btn-x" id="share-x" target="_blank" rel="noopener">Share on <b>X</b></a>
+              <img class="card-preview hidden" id="card-preview" alt="" />
+            </div>
+          </div>
+
+          <p class="share-tip">Tip: download the card first, then attach it to your post on X.</p>
+
+          <div class="dash-canvas">
+            <article class="dash-card">
+              <svg class="dash-grain" aria-hidden="true"><filter id="ns-grain"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#ns-grain)"/></svg>
+              <span class="dash-blob dash-blob--a" aria-hidden="true"></span>
+              <span class="dash-blob dash-blob--b" aria-hidden="true"></span>
+
+              <!-- LEFT: creator -->
+              <section class="zone zone-left">
+                <span class="tag">Account</span>
+                <div class="avatar" id="avatar" aria-hidden="true">
+                  <span class="avatar-initials" id="avatar-initials">?</span>
+                  <img class="avatar-img hidden" id="avatar-img" alt="" />
+                </div>
+                <h2 class="display-name"><a class="profile-link" id="display-name" target="_blank" rel="noopener noreferrer">&mdash;</a></h2>
+                <a class="handle profile-link" id="handle" target="_blank" rel="noopener noreferrer">@&mdash;</a>
+                <p class="bio" id="bio"></p>
+                <p class="profile-stats hidden" id="profile-stats"></p>
+              </section>
+
+              <!-- CENTER: niche intelligence -->
+              <section class="zone zone-center">
+                <svg class="stone" viewBox="0 0 400 400" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="ns-metal" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0" stop-color="#3a3a3e"/><stop offset=".5" stop-color="#141416"/><stop offset="1" stop-color="#2a2830"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M88 70c46-38 132-30 170 8 30 30 18 70-14 88-40 22-104 12-140-12-34-22-50-56-16-84z" fill="url(#ns-metal)"/>
+                  <path d="M150 262c40-26 116-22 146 10 24 26 6 66-34 78-46 14-108 0-128-30-12-20-4-44 16-58z" fill="url(#ns-metal)"/>
+                </svg>
+                <span class="tag">Niche intelligence</span>
+                <p class="score-label">Score</p>
+                <p class="score-value" id="overall-score">&mdash;</p>
+                <div class="niche-pills" id="niche-list"></div>
+                <p class="lock-note" id="lock-note"></p>
+              </section>
+
+              <!-- RIGHT: metrics -->
+              <section class="zone zone-right">
+                <span class="tag">Metrics</span>
+                <span class="metric-basis" id="m-basis"></span>
+                <div class="metric"><span class="metric-num" id="m-followers">&mdash;</span><span class="metric-label">Followers</span></div>
+                <div class="metric"><span class="metric-num" id="m-eng">&mdash;</span><span class="metric-label">Engagement rate</span></div>
+                <div class="metric"><span class="metric-num" id="m-views">&mdash;</span><span class="metric-label">Impressions</span></div>
+              </section>
+
+              <span class="dash-foot dash-foot--l">NicheScan</span>
+              <span class="dash-foot dash-foot--r"><span class="copy">&copy;</span> xlee</span>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Error -->
+      <section class="panel error-panel hidden" id="error-panel" role="alert">
+        <div class="error-card">
+          <p id="error-message">Something went wrong.</p>
+          <button type="button" class="btn-primary" id="error-retry">Try again</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p class="footer-copy">&copy; 2026 xlee &middot; NicheScan</p>
+    </footer>
+  </div>
+  <script src="/app.js"></script>
+  <script src="/leaves.js" defer></script>
+</body>
+</html>

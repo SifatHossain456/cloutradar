@@ -1,0 +1,13 @@
+{
+  "name": "nichescan",
+  "version": "1.2.0",
+  "description": "Scan an X account. Get their niches. Share the card.",
+  "scripts": {
+    "start": "python server.py",
+    "dev": "python server.py",
+    "test": "python test_backend.py"
+  },
+  "keywords": ["twitter", "x", "niche", "scanner", "analytics", "fastapi"],
+  "author": "xlee",
+  "license": "MIT"
+}
