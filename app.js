@@ -1,36 +1,52 @@
 /**
- * NicheScan — dark CT share-tool frontend
+ * NicheScan Pro — Advanced CT Share & Intelligence Engine
  */
 
 (function () {
   const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => document.querySelectorAll(sel);
 
+  // Core Sections
   const hero = $("#hero");
   const scanning = $("#scanning");
   const results = $("#results");
+  const battleResults = $("#battle-results");
   const errorPanel = $("#error-panel");
-  const form = $("#scan-form");
-  const input = $("#username");
+
+  // Forms & Inputs
+  const soloForm = $("#scan-form");
+  const battleForm = $("#battle-form");
+  const usernameInput = $("#username");
+  const battleU1 = $("#battle-u1");
+  const battleU2 = $("#battle-u2");
   const scanBtn = $("#scan-btn");
+  const battleBtn = $("#battle-btn");
   const scanStatus = $("#scan-status");
   const progressBar = $("#progress-bar");
   const demoChips = $("#demo-chips");
+  const trendingChips = $("#trending-chips");
 
-  function show(el) {
-    if (el) el.classList.remove("hidden");
-  }
-  function hide(el) {
-    if (el) el.classList.add("hidden");
-  }
+  // Active state
+  let currentMode = "solo"; // "solo" | "battle"
+  let currentTheme = "cyber_violet";
+  let currentFormat = "landscape"; // "landscape" | "story"
+  let currentScanData = null;
+  let currentBattleData = null;
+
+  function show(el) { if (el) el.classList.remove("hidden"); }
+  function hide(el) { if (el) el.classList.add("hidden"); }
 
   function setView(view) {
     hide(hero);
     hide(scanning);
     hide(results);
+    hide(battleResults);
     hide(errorPanel);
+
     if (view === "hero") show(hero);
     if (view === "scanning") show(scanning);
     if (view === "results") show(results);
+    if (view === "battle") show(battleResults);
     if (view === "error") show(errorPanel);
   }
 
@@ -42,31 +58,97 @@
       .slice(0, 40);
   }
 
-  input.addEventListener("input", () => {
-    const cleaned = normalizeUsername(input.value);
-    if (input.value !== cleaned) {
-      const pos = input.selectionStart;
-      input.value = cleaned;
-      try {
-        input.setSelectionRange(Math.max(0, pos - 1), Math.max(0, pos - 1));
-      } catch (_) {}
-    }
+  [usernameInput, battleU1, battleU2].forEach((inp) => {
+    if (!inp) return;
+    inp.addEventListener("input", () => {
+      inp.value = normalizeUsername(inp.value);
+    });
+    inp.addEventListener("paste", (e) => {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData("text");
+      inp.value = normalizeUsername(text);
+    });
   });
 
-  input.addEventListener("paste", (e) => {
-    e.preventDefault();
-    const text = (e.clipboardData || window.clipboardData).getData("text");
-    input.value = normalizeUsername(text);
+  // --- Mode Switcher (Solo vs Battle) ---
+  const tabSolo = $("#tab-solo");
+  const tabBattle = $("#tab-battle");
+
+  if (tabSolo && tabBattle) {
+    tabSolo.addEventListener("click", () => {
+      currentMode = "solo";
+      tabSolo.classList.add("active");
+      tabBattle.classList.remove("active");
+      show(soloForm);
+      hide(battleForm);
+      $("#hero-title").innerHTML = `<span>WHAT'S THEIR</span><span class="gradient-text">NICHE?</span>`;
+      $("#hero-subcopy").textContent = "Scan an @ → get niches & radar clout → download the card";
+    });
+
+    tabBattle.addEventListener("click", () => {
+      currentMode = "battle";
+      tabBattle.classList.add("active");
+      tabSolo.classList.remove("active");
+      hide(soloForm);
+      show(battleForm);
+      $("#hero-title").innerHTML = `<span>VERSUS CLASH</span><span class="gradient-text">ARENA</span>`;
+      $("#hero-subcopy").textContent = "Pit two profiles head-to-head → see who wins CT clout dominance";
+    });
+  }
+
+  // --- Theme Switcher ---
+  $$(".theme-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      $$(".theme-chip").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentTheme = btn.dataset.theme;
+
+      // Update body theme
+      document.body.className = `theme-${currentTheme.replace(/_/g, "-")}`;
+
+      // Refresh card if in results
+      if (currentScanData && currentScanData.username) {
+        scan(currentScanData.username, "theme_change");
+      }
+    });
   });
 
-  function initials(name) {
-    const parts = String(name || "?")
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean);
-    if (!parts.length) return "?";
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-    return (parts[0][0] + parts[1][0]).toUpperCase();
+  // --- Format Switcher (16:9 vs 9:16) ---
+  $$(".format-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      $$(".format-chip").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentFormat = btn.dataset.format;
+      updateCardPreview();
+    });
+  });
+
+  // --- View Tabs (Card / Mind / Radar / Vibe) ---
+  $$(".view-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      $$(".view-tab").forEach((t) => t.classList.remove("active"));
+      $$(".tab-pane").forEach((p) => p.classList.add("hidden"));
+      tab.classList.add("active");
+      const targetPane = document.getElementById(tab.dataset.tab);
+      if (targetPane) targetPane.classList.remove("hidden");
+    });
+  });
+
+  // --- Autumn Leaves Toggle ---
+  const leavesToggle = $("#leaves-toggle");
+  if (leavesToggle) {
+    leavesToggle.addEventListener("click", () => {
+      const layer = $(".leaves");
+      if (layer) {
+        if (layer.style.display === "none") {
+          layer.style.display = "block";
+          leavesToggle.textContent = "🍂 Leaves: On";
+        } else {
+          layer.style.display = "none";
+          leavesToggle.textContent = "🍂 Leaves: Off";
+        }
+      }
+    });
   }
 
   function escapeHtml(s) {
@@ -75,30 +157,6 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
-  }
-
-  function setAvatar(data) {
-    const initialsEl = $("#avatar-initials");
-    const imgEl = $("#avatar-img");
-    const init = initials(data.display_name || data.username);
-    if (initialsEl) {
-      initialsEl.textContent = init;
-      initialsEl.classList.remove("hidden");
-    }
-    if (!imgEl) return;
-    imgEl.classList.add("hidden");
-    imgEl.removeAttribute("src");
-    if (!data.avatar_url) return;
-    imgEl.onload = () => {
-      imgEl.classList.remove("hidden");
-      if (initialsEl) initialsEl.classList.add("hidden");
-    };
-    imgEl.onerror = () => {
-      imgEl.classList.add("hidden");
-      if (initialsEl) initialsEl.classList.remove("hidden");
-    };
-    imgEl.alt = data.display_name || data.username;
-    imgEl.src = data.avatar_url;
   }
 
   function fmtNum(n) {
@@ -111,228 +169,244 @@
     return n.toLocaleString("en-US");
   }
 
+  // --- Card Preview Update ---
+  function updateCardPreview() {
+    if (!currentScanData) return;
+    const imgEl = $("#rendered-card");
+    const dlEl = $("#card-download");
+    const src = (currentFormat === "story" && currentScanData.story_card_data_url)
+      ? currentScanData.story_card_data_url
+      : (currentScanData.card_data_url || "");
+
+    if (imgEl && src) {
+      imgEl.src = src;
+    }
+    if (dlEl && src) {
+      dlEl.href = src;
+      dlEl.setAttribute("download", `nichescan-${currentScanData.username}-${currentFormat}.png`);
+    }
+  }
+
+  // --- Hexagon Clout Radar SVG Generator ---
+  function renderHexagonRadar(scores) {
+    const container = $("#radar-container");
+    const legend = $("#radar-legend");
+    if (!container || !scores) return;
+
+    const keys = ["Reach", "Alpha", "Meme", "Tech", "Degen", "Activity"];
+    const N = keys.length;
+    const cx = 190, cy = 160, maxR = 115;
+
+    let svg = `<svg viewBox="0 0 380 320" width="100%" height="100%">
+      <defs>
+        <radialGradient id="radar-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="var(--theme-bright)" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="var(--theme-primary)" stop-opacity="0"/>
+        </radialGradient>
+      </defs>`;
+
+    // Concentric polygons
+    for (let level = 1; level <= 4; level++) {
+      const r = (maxR / 4) * level;
+      let polyPts = [];
+      for (let i = 0; i < N; i++) {
+        const angle = (Math.PI * 2 / N) * i - Math.PI / 2;
+        polyPts.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
+      }
+      svg += `<polygon points="${polyPts.join(' ')}" fill="none" stroke="var(--border)" stroke-width="1" stroke-dasharray="${level < 4 ? '3,3' : '0'}"/>`;
+    }
+
+    // Radial spokes
+    for (let i = 0; i < N; i++) {
+      const angle = (Math.PI * 2 / N) * i - Math.PI / 2;
+      const x2 = cx + maxR * Math.cos(angle);
+      const y2 = cy + maxR * Math.sin(angle);
+      svg += `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="var(--border)" stroke-width="1"/>`;
+
+      // Labels
+      const lx = cx + (maxR + 24) * Math.cos(angle);
+      const ly = cy + (maxR + 18) * Math.sin(angle) + 4;
+      svg += `<text x="${lx}" y="${ly}" fill="var(--muted)" font-family="Space Grotesk" font-size="12" font-weight="700" text-anchor="middle">${keys[i]}</text>`;
+    }
+
+    // User data polygon
+    let userPts = [];
+    keys.forEach((k, i) => {
+      const val = Math.max(10, Math.min(100, scores[k] || 50));
+      const r = (maxR * (val / 100));
+      const angle = (Math.PI * 2 / N) * i - Math.PI / 2;
+      userPts.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
+    });
+
+    svg += `<polygon points="${userPts.join(' ')}" fill="url(#radar-glow)" stroke="var(--theme-bright)" stroke-width="2.5"/>`;
+    userPts.forEach((pt) => {
+      const [px, py] = pt.split(',');
+      svg += `<circle cx="${px}" cy="${py}" r="4" fill="#fff" stroke="var(--theme-primary)" stroke-width="2"/>`;
+    });
+
+    svg += `</svg>`;
+    container.innerHTML = svg;
+
+    // Legend
+    if (legend) {
+      legend.innerHTML = keys.map((k) => `
+        <div class="radar-stat-badge">
+          <span>${k}:</span> <b>${scores[k] || 0}%</b>
+        </div>
+      `).join("");
+    }
+  }
+
+  // --- Render Solo Results ---
   function renderResults(data) {
+    currentScanData = data;
+
     $("#display-name").textContent = data.display_name || data.username;
     $("#handle").textContent = "@" + data.username;
-    // Name + @handle open the X profile (canonical casing from the scan) in a new tab.
-    const xUrl = /^[A-Za-z0-9_]{1,15}$/.test(data.username || "")
-      ? "https://x.com/" + data.username : "";
+
+    const xUrl = `https://x.com/${data.username}`;
     ["#display-name", "#handle"].forEach((sel) => {
       const a = $(sel);
-      if (!a) return;
-      if (xUrl) {
-        a.href = xUrl;
-        a.title = "Open @" + data.username + " on X";
-      } else {
-        a.removeAttribute("href");
-        a.removeAttribute("title");
-      }
+      if (a) { a.href = xUrl; a.title = `Open @${data.username} on X`; }
     });
-    const bioEl = $("#bio");
-    if (bioEl) bioEl.textContent = data.bio || "";
-    setAvatar(data);
 
-    const scoreEl = $("#overall-score");
-    if (scoreEl) {
-      const raw = Number(data.overall_score);
-      scoreEl.textContent = isFinite(raw) && raw > 0
-        ? String(Math.max(1, Math.round(raw)))
-        : "—";
+    $("#bio").textContent = data.bio || "No bio provided.";
+
+    // Avatar
+    const imgEl = $("#avatar-img");
+    const initEl = $("#avatar-initials");
+    if (data.avatar_url && imgEl) {
+      imgEl.src = data.avatar_url;
+      imgEl.classList.remove("hidden");
+      if (initEl) initEl.classList.add("hidden");
     }
 
-    $("#m-followers").textContent = data.followers ? fmtNum(data.followers) : "—";
+    $("#overall-score").textContent = data.overall_score || "—";
+    $("#m-followers").textContent = fmtNum(data.followers);
     const er = Number(data.er_median);
-    $("#m-eng").textContent = er > 0
-      ? ((er * 100) >= 10 ? (er * 100).toFixed(1) : (er * 100).toFixed(2)).replace(/\.?0+$/, "") + "%"
-      : "—";
-    $("#m-views").textContent = data.impressions != null ? fmtNum(data.impressions) : "—";
-    const basisEl = $("#m-basis");
-    if (basisEl) {
-      const n = Number(data.imp_posts_n) || 0;
-      let label = "";
-      if (n) {
-        if (data.imp_full_window) label = "last 90d · " + n + " posts";
-        else {
-          const d = data.imp_since ? new Date(data.imp_since + "T00:00:00Z") : null;
-          const sd = d ? d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }) : "?";
-          label = "since " + sd + " · " + n + " posts";
-        }
-      } else if (Number(data.sample_n)) {
-        label = "last " + data.sample_n + " posts";
-      }
-      basisEl.textContent = label;
-    }
+    $("#m-eng").textContent = er > 0 ? (er * 100).toFixed(1) + "%" : "—";
+    $("#m-views").textContent = fmtNum(data.impressions);
 
+    // Niches
     const list = $("#niche-list");
     list.innerHTML = "";
-    const niches = data.niches || [];
-    if (!niches.length) {
-      const span = document.createElement("span");
-      span.className = "niche-pill empty";
-      span.textContent = "No strong niche signal";
-      list.appendChild(span);
-    } else {
-      niches.forEach((n, i) => {
-        const pill = document.createElement("span");
-        pill.className = "niche-pill accent-" + (i % 3) + ((n.id === "gooner" || n.id === "video_creator" || n.id === "content_creator") ? " niche-" + n.id : "");
-        pill.innerHTML =
-          '<span class="np-label">' + escapeHtml(n.label) +
-          '</span><span class="np-pct">' + Math.round(n.score) + "%</span>";
-        list.appendChild(pill);
-      });
+    (data.niches || []).forEach((n, i) => {
+      const pill = document.createElement("span");
+      pill.className = `niche-pill accent-${i % 3}`;
+      pill.innerHTML = `<span class="np-label">${escapeHtml(n.label)}</span><span class="np-pct">${Math.round(n.score)}%</span>`;
+      list.appendChild(pill);
+    });
+
+    // Deep Mind Tab
+    $("#roast-text").textContent = `"${data.roast || 'Spends 24/7 on the timeline.'}"`;
+    $("#superpower-text").textContent = data.superpower || "Timeline Alpha";
+    $("#kryptonite-text").textContent = data.kryptonite || "High-slippage FOMO";
+
+    // Radar Chart
+    renderHexagonRadar(data.radar_scores);
+
+    // Audience Health & Vibe
+    if (data.vibe) {
+      $("#vibe-bullish").textContent = `${data.vibe.bullish_pct}%`;
+      $("#meter-bullish").style.width = `${data.vibe.bullish_pct}%`;
+      $("#vibe-chaos").textContent = `${data.vibe.chaos_pct}%`;
+      $("#meter-chaos").style.width = `${data.vibe.chaos_pct}%`;
+      $("#vibe-health").textContent = data.vibe.audience_health || "A Organic";
+      $("#vibe-tier").textContent = data.vibe.clout_tier || "Alpha Citizen";
     }
 
-    const lockEl = $("#lock-note");
-    if (lockEl) {
-      const at = Number(data.scanned_at), exp = Number(data.lock_expires_at);
-      if (at > 0 && exp > 0) {
-        const nowS = Date.now() / 1000;
-        const ago = Math.max(0, nowS - at), left = Math.max(0, exp - nowS);
-        const fmt = (s) => s < 3600 ? Math.max(1, Math.round(s / 60)) + "m"
-          : s < 48 * 3600 ? Math.round(s / 3600) + "h" : Math.round(s / 86400) + "d";
-        lockEl.textContent = (ago < 60 ? "Updated just now" : "Updated " + fmt(ago) + " ago") +
-          " · refreshes in " + fmt(left);
-      } else {
-        lockEl.textContent = "Updated just now · refreshes in 24h";
-      }
-    }
+    // Card Previews & Download
+    updateCardPreview();
 
-    const shareBlock = $("#share-block");
-    const preview = $("#card-preview");
-    const dl = $("#card-download");
-    const cardSrc = data.card_data_url || data.card_url || "";
-    if (cardSrc && preview && dl) {
-      preview.src = cardSrc;
-      dl.href = cardSrc;
-      dl.setAttribute("download", "nichescan-" + data.username + ".png");
-      show(shareBlock);
-    } else if (shareBlock) {
-      hide(shareBlock);
-    }
-
+    // Share on X
     const xBtn = $("#share-x");
     if (xBtn) {
-      const top = niches[0];
-      const sc = scoreEl ? scoreEl.textContent : "";
-      const text = top
-        ? "I'm " + top.label + " " + Math.round(top.score) + "% with a NicheScan score of " + sc + " \u{1F427} check yours"
-        : "My NicheScan score is " + sc + " \u{1F427} check yours";
-      const siteUrl = window.location.origin || "https://nichescan-mu.vercel.app";
-      xBtn.href = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text) +
-        "&url=" + encodeURIComponent(siteUrl);
+      const top = data.niches && data.niches[0] ? data.niches[0].label : "CT Citizen";
+      const text = `I'm ${top} with a NicheScan score of ${data.overall_score} 🐧 check yours`;
+      const siteUrl = window.location.origin || "https://nichescan.app";
+      xBtn.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(siteUrl)}`;
     }
 
-    document.body.classList.add("is-results");
     setView("results");
   }
 
-  function sleep(ms) {
-    return new Promise((r) => setTimeout(r, ms));
+  // --- Render Battle Results ---
+  function renderBattleResults(data) {
+    currentBattleData = data;
+    const u1 = data.user1;
+    const u2 = data.user2;
+
+    $("#p1-avatar").src = u1.avatar_url || `https://unavatar.io/x/${u1.username}`;
+    $("#p1-name").textContent = u1.display_name;
+    $("#p1-handle").textContent = `@${u1.username}`;
+    $("#p1-score").textContent = u1.score;
+    $("#p1-niche").textContent = u1.top_niche;
+    $("#p1-followers").textContent = u1.followers_str;
+    $("#p1-er").textContent = u1.er_str;
+
+    $("#p2-avatar").src = u2.avatar_url || `https://unavatar.io/x/${u2.username}`;
+    $("#p2-name").textContent = u2.display_name;
+    $("#p2-handle").textContent = `@${u2.username}`;
+    $("#p2-score").textContent = u2.score;
+    $("#p2-niche").textContent = u2.top_niche;
+    $("#p2-followers").textContent = u2.followers_str;
+    $("#p2-er").textContent = u2.er_str;
+
+    $("#victor-name").textContent = `@${data.victor.toUpperCase()}`;
+
+    const cardImg = $("#battle-card-img");
+    if (cardImg && data.battle_card_data_url) {
+      cardImg.src = data.battle_card_data_url;
+    }
+    const dl = $("#battle-download");
+    if (dl && data.battle_card_data_url) {
+      dl.href = data.battle_card_data_url;
+      dl.setAttribute("download", `nichescan-clash-${u1.username}-vs-${u2.username}.png`);
+    }
+
+    const shareX = $("#battle-share-x");
+    if (shareX) {
+      const text = `⚔️ CT CLASH: @${u1.username} (${u1.score}) vs @${u2.username} (${u2.score})! Victor: @${data.victor} 👑`;
+      const siteUrl = window.location.origin || "https://nichescan.app";
+      shareX.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(siteUrl)}`;
+    }
+
+    setView("battle");
   }
 
-  const demoAvatars = {};
-  function setLoaderPfp(handle) {
-    const img = document.getElementById("loader-pfp");
-    const stage = document.querySelector(".peng-stage");
-    if (!img || !stage) return;
-    stage.classList.remove("has-pfp");
-    img.onload = null;
-    img.onerror = null;
-    img.removeAttribute("src");
-    if (!handle) return;
-    const stored = demoAvatars[handle.toLowerCase()];
-    img.onload = () => stage.classList.add("has-pfp");
-    img.onerror = () => {
-      if (img.dataset.fallback !== "1") {
-        img.dataset.fallback = "1";
-        img.src = "https://unavatar.io/x/" + encodeURIComponent(handle) + "?fallback=false";
-      } else {
-        stage.classList.remove("has-pfp"); // keep the penguin
-      }
-    };
-    img.dataset.fallback = "0";
-    img.src = stored || "/api/pfp?u=" + encodeURIComponent(handle);
-  }
+  function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
-  // Loading screen: real steps streamed from the scan
-  let loaderTimer = null;
   function setStep(text, pct) {
-    scanStatus.classList.remove("tick");
-    void scanStatus.offsetWidth;
-    scanStatus.classList.add("tick");
     scanStatus.textContent = text;
     if (pct != null) progressBar.style.width = Math.round(pct) + "%";
   }
-  const fmtN = (n) => n >= 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, "") + "M"
-    : n >= 1e3 ? (n / 1e3).toFixed(1).replace(/\.0$/, "") + "K" : String(n);
 
-  function onProgress(ev, handle, st) {
-    if (ev.step === "profile") {
-      setStep("Found @" + handle + (ev.followers ? " · " + fmtN(ev.followers) + " followers" : ""), 15);
-      st.pct = 15;
-    } else if (ev.step === "posts") {
-      st.pct = Math.min(80, Math.max(st.pct, 15) + 2.5);
-      setStep("Reading posts · " + fmtN(ev.n) + " fetched", st.pct);
-    } else if (ev.step === "analyze") {
-      setStep("Detecting niches", 85);
-    } else if (ev.step === "card") {
-      setStep("Calculating score", 92);
-    }
-  }
-
-  async function runScanAnimation(handle) {
-    setLoaderPfp(handle);
-    setView("scanning");
-    if (loaderTimer) { clearInterval(loaderTimer); loaderTimer = null; }
-    setStep("Looking up @" + (handle || "account"), 6);
-    await sleep(400);
-  }
-
-  // Anonymous visitor id for private usage stats.
-  function visitorId() {
-    try {
-      let v = localStorage.getItem("ns_vid");
-      if (!v || !/^[A-Za-z0-9_-]{8,64}$/.test(v)) {
-        v = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
-          : Array.from({ length: 4 }, () => Math.random().toString(36).slice(2, 10)).join("");
-        localStorage.setItem("ns_vid", v);
-      }
-      return v;
-    } catch (_) { return ""; }
-  }
-
-  function track(payload) {
-    try {
-      const body = JSON.stringify(Object.assign({ vid: visitorId() }, payload));
-      if (navigator.sendBeacon && navigator.sendBeacon("/api/track", new Blob([body], { type: "application/json" }))) return;
-      fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true }).catch(() => {});
-    } catch (_) {}
-  }
-
+  // --- Solo Scan Execution ---
   async function scan(username, src) {
     const handle = normalizeUsername(username);
-    if (!handle) {
-      input.focus();
-      return;
-    }
-    input.value = handle;
+    if (!handle) { usernameInput.focus(); return; }
+
+    usernameInput.value = handle;
     scanBtn.disabled = true;
 
-    const anim = runScanAnimation(handle);
+    setView("scanning");
+    setStep(`Scanning @${handle}...`, 12);
 
-    let data;
-    let err;
+    let data, err;
     try {
       const res = await fetch("/api/scan?stream=1", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: handle, src: src === "demo" ? "demo" : "typed", vid: visitorId() }),
+        body: JSON.stringify({
+          username: handle,
+          src: src || "typed",
+          theme: currentTheme,
+          format: currentFormat
+        }),
       });
-      let status = res.status, body = {};
-      const ctype = res.headers.get("content-type") || "";
-      if (res.ok && ctype.includes("ndjson") && res.body && res.body.getReader) {
+
+      if (res.ok && res.body && res.body.getReader) {
         const reader = res.body.getReader(), dec = new TextDecoder();
-        const st = { pct: 6 };
         let buf = "", final = null;
         while (!final) {
           const { value, done } = await reader.read();
@@ -344,231 +418,149 @@
             if (!line) continue;
             let ev;
             try { ev = JSON.parse(line); } catch (_) { continue; }
+            if (ev.step === "profile") setStep(`Found @${handle} (${fmtNum(ev.followers)} followers)`, 28);
+            if (ev.step === "posts") setStep(`Analyzing recent timeline alpha...`, 60);
+            if (ev.step === "analyze") setStep(`Computing CT Clout Radar...`, 82);
+            if (ev.step === "card") setStep(`Synthesizing high-res card...`, 94);
             if (ev.step === "done" || ev.step === "error") { final = ev; break; }
-            onProgress(ev, handle, st);
           }
           if (done) break;
         }
-        if (!final) throw new Error("Scan interrupted. Please retry.");
-        status = final.status || 500;
-        body = final.step === "done" ? final.result : { detail: final.detail };
+        if (!final || final.step === "error") throw new Error("Could not scan account.");
+        data = final.result;
       } else {
-        body = await res.json().catch(() => ({}));
+        data = await res.json();
       }
-      if (status < 200 || status >= 300) {
-        let msg = body.detail || "Scan failed";
-        if (Array.isArray(msg)) {
-          msg = msg.map((x) => x.msg || JSON.stringify(x)).join("; ");
-        }
-        throw new Error(msg);
-      }
-      data = body;
     } catch (e) {
       err = e;
     }
 
-    await anim;
     progressBar.style.width = "100%";
-    await sleep(150);
+    await sleep(200);
     scanBtn.disabled = false;
 
     if (err) {
-      $("#error-message").textContent =
-        err.message || "Could not reach NicheScan.";
+      $("#error-message").textContent = err.message || "Failed to scan profile.";
       setView("error");
       return;
     }
     renderResults(data);
   }
 
-  form.addEventListener("submit", (e) => {
+  // --- Battle Execution ---
+  async function battle(u1, u2) {
+    const p1 = normalizeUsername(u1);
+    const p2 = normalizeUsername(u2);
+    if (!p1 || !p2) return;
+
+    battleBtn.disabled = true;
+    setView("scanning");
+    setStep(`Clashing @${p1} vs @${p2}...`, 30);
+    await sleep(400);
+    setStep(`Computing relative clout & dominance...`, 75);
+
+    try {
+      const res = await fetch("/api/compare", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user1: p1, user2: p2, theme: currentTheme })
+      });
+      const data = await res.json();
+      progressBar.style.width = "100%";
+      await sleep(200);
+      battleBtn.disabled = false;
+      renderBattleResults(data);
+    } catch (e) {
+      battleBtn.disabled = false;
+      $("#error-message").textContent = "Clash failed. Try again.";
+      setView("error");
+    }
+  }
+
+  // --- Form Handlers ---
+  soloForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    scan(input.value);
+    scan(usernameInput.value);
   });
 
-  $("#scan-another").addEventListener("click", () => {
-    document.body.classList.remove("is-results");
-    setView("hero");
-    input.focus();
+  battleForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    battle(battleU1.value, battleU2.value);
   });
 
-  $("#error-retry").addEventListener("click", () => {
-    setView("hero");
-    input.focus();
-  });
+  $("#scan-another").addEventListener("click", () => setView("hero"));
+  $("#battle-back").addEventListener("click", () => setView("hero"));
+  $("#error-retry").addEventListener("click", () => setView("hero"));
 
-  function dataUrlToBlob(src) {
-    const [head, b64] = src.split(",");
-    const mime = (head.match(/data:([^;]+)/) || [])[1] || "image/png";
-    const bin = atob(b64);
-    const arr = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-    return new Blob([arr], { type: mime });
-  }
-  const isTouch = () =>
-    (window.matchMedia && matchMedia("(pointer: coarse)").matches) ||
-    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  const isIOS = () =>
-    /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  const isInApp = () => /; wv\)|Twitter|FBAN|FBAV|Instagram/i.test(navigator.userAgent);
-
-  function showSaveOverlay(blob) {
-    const old = document.getElementById("ns-save-overlay");
-    if (old) old.remove();
-    const url = URL.createObjectURL(blob);
-    const o = document.createElement("div");
-    o.id = "ns-save-overlay";
-    o.style.cssText = "position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);display:flex;" +
-      "flex-direction:column;align-items:center;justify-content:center;padding:16px;color:#f5f3ff;" +
-      "font:600 15px system-ui;text-align:center";
-    o.innerHTML = '<p style="margin:0 0 12px">Long-press the image \u2192 Save image</p>' +
-      '<img alt="NicheScan card" style="max-width:100%;max-height:75vh;height:auto;display:block;border-radius:8px">' +
-      '<button type="button" style="margin-top:16px;padding:10px 22px;border-radius:999px;border:1px solid #7c3aed;' +
-      'background:#12101c;color:#f5f3ff;font:600 14px system-ui;cursor:pointer">Close</button>';
-    o.querySelector("img").src = url;
-    const close = () => { o.remove(); URL.revokeObjectURL(url); };
-    o.querySelector("button").addEventListener("click", close);
-    o.addEventListener("click", (e) => { if (e.target === o) close(); });
-    document.body.appendChild(o);
-    window.__nsDownloadPath = "overlay";
-  }
-
-  const dlBtn = $("#card-download");
-  if (dlBtn) {
-    dlBtn.addEventListener("click", (ev) => {
-      const src = dlBtn.getAttribute("href") || "";
-      const dlName = (dlBtn.getAttribute("download") || "").replace(/^nichescan-|\.png$/g, "");
-      if (src) track({ event: "download", handle: dlName });
-      if (!src || !isTouch()) return;
-      const name = dlBtn.getAttribute("download") || "nichescan-card.png";
-      let blob;
-      try {
-        blob = src.startsWith("data:") ? dataUrlToBlob(src) : null;
-      } catch (_) { blob = null; }
-      if (!blob) return;
-      if (isInApp()) { ev.preventDefault(); showSaveOverlay(blob); return; }
-      if (!isIOS()) { window.__nsDownloadPath = "anchor"; return; }
-      const file = new File([blob], name, { type: "image/png" });
-      if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
-        ev.preventDefault();
-        navigator.share({ files: [file], title: "My NicheScan card" }).catch((err) => {
-          if (err && err.name === "AbortError") return;
-          window.__nsLastShareError = String(err);
-          showSaveOverlay(blob);
-        });
-        window.__nsDownloadPath = "share";
-        return;
-      }
-      if (isIOS()) {
-        ev.preventDefault();
-        const url = URL.createObjectURL(blob);
-        const w = window.open("", "_blank");
-        if (w) {
-          w.document.write(
-            '<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">' +
-            '<title>NicheScan card</title><body style="margin:0;background:#000;color:#f5f3ff;font:600 15px system-ui;text-align:center">' +
-            '<p style="padding:18px 12px 6px">Long-press the image \u2192 Save to Photos</p>' +
-            '<img src="' + url + '" style="width:100%;height:auto;display:block" alt="NicheScan card"></body>'
-          );
-          w.document.close();
-          window.__nsDownloadPath = "ios-tab";
-        } else {
-          URL.revokeObjectURL(url);
-          showSaveOverlay(blob);
-        }
-        return;
-      }
-    });
-  }
-
+  // --- Copy Image to Clipboard ---
   const shareBtn = $("#card-share");
   if (shareBtn) {
     shareBtn.addEventListener("click", async () => {
-      const preview = $("#card-preview");
-      const url = preview && preview.src;
-      if (!url) return;
+      const img = $("#rendered-card");
+      if (!img || !img.src) return;
       try {
-        const res = await fetch(url);
+        const res = await fetch(img.src);
         const blob = await res.blob();
         if (navigator.clipboard && window.ClipboardItem) {
-          await navigator.clipboard.write([
-            new ClipboardItem({ "image/png": blob }),
-          ]);
-          shareBtn.textContent = "Copied";
+          await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+          shareBtn.textContent = "Copied!";
           setTimeout(() => { shareBtn.textContent = "Copy image"; }, 1500);
-          return;
         }
-      } catch (_) {}
-      try {
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "nichescan-card.png";
-        a.click();
-      } catch (_) {}
+      } catch (_) {
+        alert("Image ready! Right click or long press to copy.");
+      }
     });
   }
 
-  // Demo pills rotate server-side
-  let demoTimer = null;
-  let demoNextRotation = 0;
-  let demoClockSkew = 0;
-
-  async function loadDemos() {
-    let demos = [{ username: "xlee_istheking", display_name: "xlee" }];
-    let next = 0;
+  // --- Load Trending Ticker ---
+  async function loadTrending() {
     try {
-      const res = await fetch("/api/demos", { cache: "no-cache" });
-      if (res.ok) {
-        const j = await res.json();
-        if (j.demos && j.demos.length) demos = j.demos;
-        if (j.server_time) demoClockSkew = j.server_time - Date.now() / 1000;
-        next = Number(j.next_rotation) || 0;
+      const res = await fetch("/api/trending");
+      const data = await res.json();
+      if (data.trending && trendingChips) {
+        trendingChips.innerHTML = data.trending.map((t) => `
+          <button type="button" class="trend-chip" data-handle="${t.username}">
+            @${t.username}
+          </button>
+        `).join("");
+
+        $$(".trend-chip").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            usernameInput.value = btn.dataset.handle;
+            scan(btn.dataset.handle, "trending");
+          });
+        });
       }
     } catch (_) {}
-
-    demos.forEach((d) => {
-      if (d.avatar_url) demoAvatars[String(d.username).toLowerCase()] = d.avatar_url;
-    });
-    demoChips.innerHTML = "";
-    demos.forEach((d) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      const solid = d.username.toLowerCase() === "xlee_istheking";
-      btn.className = "demo-chip" + (solid ? " demo-chip--solid" : "");
-      const accent = /^#[0-9a-f]{6}$/i.test(d.accent_color || "") ? d.accent_color : "#8b5cf6";
-      btn.style.setProperty("--chip", accent);
-      btn.style.animationDelay = (Math.random() * 2).toFixed(2) + "s";
-      const av = d.avatar_url
-        ? '<img class="demo-chip-pfp" src="' + escapeHtml(d.avatar_url) + '" alt="" loading="lazy" referrerpolicy="no-referrer" />'
-        : '<span class="demo-chip-pfp demo-chip-pfp--empty"></span>';
-      btn.innerHTML = av + '<span class="demo-chip-handle">@' + escapeHtml(d.username) + "</span>";
-      btn.title = d.display_name || d.username;
-      btn.addEventListener("click", () => {
-        input.value = normalizeUsername(d.username);
-        scan(d.username, "demo");
-      });
-      demoChips.appendChild(btn);
-    });
-    scheduleDemoRotation(next);
   }
 
-  function scheduleDemoRotation(next) {
-    if (demoTimer) clearTimeout(demoTimer);
-    demoNextRotation = next || 0;
-    const wait = next
-      ? Math.max(1000, (next - (Date.now() / 1000 + demoClockSkew)) * 1000 + 1500)
-      : 60000;
-    demoTimer = setTimeout(loadDemos, Math.min(wait, 2147483000));
+  // --- Load Curated Demos ---
+  async function loadDemos() {
+    try {
+      const res = await fetch("/api/demos");
+      const j = await res.json();
+      if (j.demos && demoChips) {
+        demoChips.innerHTML = "";
+        j.demos.forEach((d) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "demo-chip";
+          btn.style.setProperty("--chip", d.accent_color || "#8b5cf6");
+          btn.innerHTML = `
+            <img class="demo-chip-pfp" src="${d.avatar_url}" alt="" loading="lazy"/>
+            <span>@${d.username}</span>
+          `;
+          btn.addEventListener("click", () => {
+            usernameInput.value = d.username;
+            scan(d.username, "demo");
+          });
+          demoChips.appendChild(btn);
+        });
+      }
+    } catch (_) {}
   }
 
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" && demoNextRotation &&
-        Date.now() / 1000 + demoClockSkew >= demoNextRotation) {
-      loadDemos();
-    }
-  });
-
+  loadTrending();
   loadDemos();
   setView("hero");
 })();

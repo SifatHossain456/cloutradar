@@ -1,67 +1,64 @@
-# NicheScan 🐧
+# NicheScan Pro 🐧⚡
 
-> **Scan an X account · Get their niches · Share the card**  
-> A high-fidelity, production-grade 1:1 clone and implementation of [NicheScan](https://nichescan-mu.vercel.app/).
-
-![NicheScan Preview](penguin.webp)
+> **Next-Gen X Account Niche & Clout Intelligence Platform**  
+> Go beyond basic keyword scanning. Analyze deep niches, Clout Hexagon Radars, timeline vibes, AI roasts, and battle profiles in the Versus Arena with 1-click viral share cards.
 
 ---
 
-## ⚡ Features
+## 🌟 What Makes NicheScan Pro Distinct?
 
-- **Live Twitter / X Intelligence**:
-  - Live profile lookup & real-time metric analysis via FxTwitter / FixTweet.
-  - Heuristic & neural niche scoring across CT Trader, Poly Maxi, Shitposter, Solana Degen, AI Builder, Dev / Builder, Airdrop Hunter, Alpha Caller, and more.
-  - Overall Creator Score (0–100) calculated from reach, engagement rate, post frequency, and content consistency.
+Rather than being a simple clone, **NicheScan Pro** elevates the experience with original, high-utility, viral capabilities designed specifically for Crypto Twitter & Tech communities:
 
-- **Rotating Demo Creator Chips**:
-  - 7 curated sets of 5 creator accounts (total 35 top personalities).
-  - Synchronized server-side 180-second rotation window with automatic client-side updates.
+### 1. ⚡ Solo Scanner & ⚔️ Versus Battle Arena
+- **Solo Scanner**: Deep profile autopsy, niche percentage breakdown, and clout metrics.
+- **Versus Arena**: Head-to-head comparison of any two handles (e.g. `@sama` vs `@elonmusk` or `@vitalikbuterin` vs `@cobie`). Generates an electrifying **Battle Card** with victor declaration banner!
 
-- **Real-Time Streaming Scanner**:
-  - NDJSON streaming events (`profile` → `posts` → `analyze` → `card` → `done`).
-  - Radar sweep scanner with glowing rings, scanline animation, and mascot penguin loader.
+### 2. 🎴 Multi-Theme Card Studio
+Customize your share card instantly across 5 distinct cyberpunk visual themes:
+- 🔮 **Cyber Violet**: Signature neon violet and deep obsidian.
+- 🧪 **Matrix Emerald**: High-tech terminal neon green.
+- 🌅 **Sunset Amber**: Warm burnished bronze and gold.
+- 🩸 **Crimson Degen**: Fiery ruby red for high-risk trenches runners.
+- ❄️ **Glacier Blue**: Frosty arctic cyan and diamond crisp slate.
 
-- **High-Resolution Card Generator (1200x675 PNG)**:
-  - Pixel-perfect server-side rendering via **Pillow (PIL)** matching the 16:9 Twitter/X card standard.
-  - Zone 1: Account (Avatar, Name, Handle, Bio).
-  - Zone 2: Niche Intelligence (Score, Niche Pills, percentages).
-  - Zone 3: Metrics (Followers, Engagement Rate, Impressions).
+### 3. 📱 Multi-Format Viral Exports
+- **16:9 Twitter Landscape (1200×675)**: Optimized for native Twitter/X card embeds.
+- **9:16 Mobile Story (1080×1920)**: Formatted for Instagram Stories, TikTok, and phone wallpapers.
+- **1-Click Clipboard Copy**: Copies rendered PNG directly to OS clipboard.
+- **Direct Download & iOS Share Sheet Support**.
 
-- **Modern Web Sharing & Downloads**:
-  - 1-click **Copy Image** directly to system clipboard via `navigator.clipboard`.
-  - Smart **Download** handling: native share sheet on iOS/iPadOS, direct download on desktop/Android, and long-press save overlay for in-app browsers (X, Instagram, Facebook).
-  - 1-click **Share on X** with pre-filled dynamic score and profile stats.
+### 4. 🧠 Deep Mind & AI Vibe Check
+- **AI Timeline Roast**: Punchy, accurate personality roasts derived from posting habits.
+- **Superpower & Kryptonite**: Highlights each creator's timeline edge and signature flaw.
+- **Bullish vs Chaos Index**: Sentiment gauges measuring market optimism and timeline irony.
+- **Audience Quality Tier**: Filters estimated bot activity and assesses organic follower health.
 
-- **Ambient Visuals**:
-  - Ambient falling autumn leaves with sway, spin, and 3D flip physics that pause on tab blur.
-  - Cyberpunk dark purple / metallic theme with glassmorphism and subtle SVG noise texture.
+### 5. 🕸️ 6-Vector Clout Hexagon Radar
+Interactive visual SVG radar charting 6 core metrics:
+`Reach` · `Alpha` · `Meme` · `Tech` · `Degen` · `Activity`.
 
-- **Private Analytics & Admin Dashboard**:
-  - Access `/stats` (or `/stats/{key}`) to view total scans, card downloads, unique visitors, and conversion rate.
-  - `/api/stats.csv` export for detailed event history.
+### 6. 🍂 Ambient Fall Atmosphere
+Falling autumn leaves physics system with live user toggle (`🍂 Leaves: On/Off`).
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack & Bug Fixes
 
-- **Backend**: Python 3.10+, [FastAPI](https://fastapi.tiangolo.com/), [Pydantic v2](https://docs.pydantic.dev/), [Uvicorn](https://www.uvicorn.org/), [Pillow (PIL)](https://pillow.readthedocs.io/).
+- **Backend**: Python 3.10+, [FastAPI](https://fastapi.tiangolo.com/), [Pydantic v2](https://docs.pydantic.dev/), [Pillow (PIL)](https://pillow.readthedocs.io/).
+- **Bundled Fonts**: Self-contained TrueType fonts (`Orbitron-Bold`, `SpaceGrotesk-Bold`, `SpaceGrotesk-Medium`) inside `api/fonts/` ensuring identical crisp vector typography across Windows, macOS, and Linux/Vercel serverless containers.
 - **Frontend**: Clean Vanilla JavaScript (ES6+), Modern Semantic HTML5, CSS3 Custom Properties, SVG filters.
-- **Deployment**: [Vercel](https://vercel.com/) Serverless Functions (`@vercel/python`) with `vercel.json` rewrites.
+- **Deployment**: [Vercel](https://vercel.com/) Serverless Functions with `vercel.json` rewrites.
 
 ---
 
 ## 🚀 Quickstart & Local Setup
 
-### 1. Prerequisites
-Ensure you have **Python 3.10+** installed.
-
-### 2. Install Dependencies
+### 1. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Run Development Server
+### 2. Run Local Development Server
 ```bash
 python server.py
 ```
@@ -72,9 +69,9 @@ http://localhost:8000
 
 ---
 
-## 🧪 Running Automated Tests
+## 🧪 Automated Test Suite
 
-A comprehensive test suite is included to verify all API endpoints, streaming responses, card image generation, and static file serving:
+A comprehensive test suite verifies all API routes, battle clash, streaming events, and themes:
 
 ```bash
 python test_backend.py
@@ -82,23 +79,20 @@ python test_backend.py
 
 Expected output:
 ```
-Ran 9 tests in 4.6s
+Ran 7 tests in 3.9s
 OK
 ```
 
 ---
 
-## ☁️ Vercel Deployment
+## ☁️ Deploying to Vercel (When Ready)
 
-This project is configured out-of-the-box for instant zero-config deployment on Vercel:
-
-1. Push to your GitHub repository (already pushed to `SifatHossain456/nichescan`).
-2. Import the repository in [Vercel](https://vercel.com/new).
-3. Vercel automatically detects `vercel.json` and configures the Python serverless runtime and static assets.
+1. This repository is already pushed to your private GitHub repo (`SifatHossain456/nichescan`).
+2. Go to [Vercel](https://vercel.com/new) and click **Import**.
+3. Vercel automatically detects `vercel.json` and configures the Python runtime and static routing.
 4. Click **Deploy**!
 
 ---
 
 ## 📄 License
-
-MIT License. Crafted for high performance and visual fidelity.
+MIT License. Crafted for supreme aesthetics, deep utility, and viral shareability.

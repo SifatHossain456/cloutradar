@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NicheScan</title>
-  <meta name="description" content="Scan an X account. Get their niches. Share the card." />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>NicheScan Pro — X Account Niche & Clout Intelligence</title>
+  <meta name="description" content="Deep X account scanner, niche classifier, clout radar, AI roast, and 1-click viral share cards." />
   <meta name="theme-color" content="#0a0a0f" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23050508'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='%237c3aed' stroke-width='7'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%23a78bfa'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
-<body>
+<body class="theme-cyber-violet">
   <div class="bg-glow" aria-hidden="true"></div>
   <div class="bg-glow bg-glow--2" aria-hidden="true"></div>
   <div class="vignette" aria-hidden="true"></div>
@@ -21,19 +21,29 @@
     <header class="site-header">
       <div class="brand">
         <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-name">NICHESCAN</span>
+        <span class="brand-name">NICHESCAN <span class="brand-badge">PRO</span></span>
+      </div>
+      <div class="header-actions">
+        <a href="/stats" class="header-link" title="Private Stats Dashboard">Stats</a>
+        <button type="button" class="leaves-toggle" id="leaves-toggle" title="Toggle autumn leaves animation">🍂 Leaves</button>
       </div>
     </header>
 
     <main>
       <!-- Hero -->
       <section class="hero" id="hero">
-        <h1 class="display">
-          <span>WHAT'S THEIR</span>
-          <span>NICHE?</span>
-        </h1>
-        <p class="subcopy">Scan an @ &rarr; get niches &rarr; download the card</p>
+        <div class="mode-switcher" role="tablist">
+          <button type="button" class="mode-tab active" id="tab-solo" role="tab" aria-selected="true">⚡ Solo Scan</button>
+          <button type="button" class="mode-tab" id="tab-battle" role="tab" aria-selected="false">⚔️ Versus Arena</button>
+        </div>
 
+        <h1 class="display" id="hero-title">
+          <span>WHAT'S THEIR</span>
+          <span class="gradient-text">NICHE?</span>
+        </h1>
+        <p class="subcopy" id="hero-subcopy">Scan an @ &rarr; get niches & radar clout &rarr; download the card</p>
+
+        <!-- Solo Form -->
         <form class="scan-card" id="scan-form" autocomplete="off">
           <label class="input-wrap" for="username">
             <span class="at-prefix" aria-hidden="true">@</span>
@@ -44,7 +54,7 @@
               inputmode="text"
               spellcheck="false"
               maxlength="40"
-              placeholder="username"
+              placeholder="username (e.g. elonmusk)"
               aria-label="X username"
               required
             />
@@ -52,7 +62,31 @@
           <button type="submit" class="btn-primary" id="scan-btn">Scan</button>
         </form>
 
+        <!-- Battle Form -->
+        <form class="scan-card battle-form hidden" id="battle-form" autocomplete="off">
+          <div class="battle-inputs">
+            <label class="input-wrap battle-input" for="battle-u1">
+              <span class="at-prefix" aria-hidden="true">@</span>
+              <input id="battle-u1" name="battle-u1" type="text" placeholder="player 1 (e.g. sama)" required />
+            </label>
+            <span class="vs-divider">VS</span>
+            <label class="input-wrap battle-input" for="battle-u2">
+              <span class="at-prefix" aria-hidden="true">@</span>
+              <input id="battle-u2" name="battle-u2" type="text" placeholder="player 2 (e.g. elonmusk)" required />
+            </label>
+          </div>
+          <button type="submit" class="btn-primary btn-battle" id="battle-btn">⚔️ Clash Profiles</button>
+        </form>
+
+        <!-- Trending Ticker -->
+        <div class="trending-bar" id="trending-bar">
+          <span class="trending-lbl">🔥 Trending:</span>
+          <div class="trending-chips" id="trending-chips"></div>
+        </div>
+
+        <!-- Demos -->
         <div class="demos" id="demos">
+          <span class="demos-title">Curated Creators (Rotates live):</span>
           <div class="demo-chips" id="demo-chips"></div>
         </div>
       </section>
@@ -74,7 +108,7 @@
         </div>
       </section>
 
-      <!-- Results — R3ACH-style dashboard -->
+      <!-- Results — Pro Cyber Dashboard -->
       <section class="panel results hidden" id="results" aria-live="polite">
         <div class="dash-wrap">
           <div class="dash-actions">
@@ -83,61 +117,218 @@
               <button type="button" class="btn-ghost" id="card-share">Copy image</button>
               <a class="btn-download" id="card-download" download>Download</a>
               <a class="btn-x" id="share-x" target="_blank" rel="noopener">Share on <b>X</b></a>
-              <img class="card-preview hidden" id="card-preview" alt="" />
             </div>
           </div>
 
-          <p class="share-tip">Tip: download the card first, then attach it to your post on X.</p>
+          <!-- Studio Customizer Bar -->
+          <div class="studio-bar">
+            <div class="studio-group">
+              <span class="studio-label">Theme:</span>
+              <div class="theme-chips" id="theme-chips">
+                <button type="button" class="theme-chip active" data-theme="cyber_violet" style="--c:#8b5cf6">Violet</button>
+                <button type="button" class="theme-chip" data-theme="matrix_emerald" style="--c:#10b981">Matrix</button>
+                <button type="button" class="theme-chip" data-theme="sunset_amber" style="--c:#f59e0b">Sunset</button>
+                <button type="button" class="theme-chip" data-theme="crimson_degen" style="--c:#f43f5e">Crimson</button>
+                <button type="button" class="theme-chip" data-theme="glacier_blue" style="--c:#0ea5e9">Glacier</button>
+              </div>
+            </div>
+            <div class="studio-group">
+              <span class="studio-label">Format:</span>
+              <div class="format-chips" id="format-chips">
+                <button type="button" class="format-chip active" data-format="landscape">16:9 Twitter</button>
+                <button type="button" class="format-chip" data-format="story">9:16 Story</button>
+              </div>
+            </div>
+          </div>
 
-          <div class="dash-canvas">
-            <article class="dash-card">
-              <svg class="dash-grain" aria-hidden="true"><filter id="ns-grain"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#ns-grain)"/></svg>
-              <span class="dash-blob dash-blob--a" aria-hidden="true"></span>
-              <span class="dash-blob dash-blob--b" aria-hidden="true"></span>
+          <!-- View Tabs -->
+          <div class="view-tabs" role="tablist">
+            <button type="button" class="view-tab active" data-tab="card-tab">🎴 Card Studio</button>
+            <button type="button" class="view-tab" data-tab="mind-tab">🧠 Mind & Roast</button>
+            <button type="button" class="view-tab" data-tab="radar-tab">🕸️ Clout Radar</button>
+            <button type="button" class="view-tab" data-tab="vibe-tab">📊 Audience Health</button>
+          </div>
 
-              <!-- LEFT: creator -->
-              <section class="zone zone-left">
-                <span class="tag">Account</span>
-                <div class="avatar" id="avatar" aria-hidden="true">
-                  <span class="avatar-initials" id="avatar-initials">?</span>
-                  <img class="avatar-img hidden" id="avatar-img" alt="" />
+          <!-- TAB 1: Card Studio -->
+          <div class="tab-pane active" id="card-tab">
+            <div class="card-preview-wrap">
+              <img class="rendered-card-img" id="rendered-card" alt="NicheScan Card Preview" />
+            </div>
+
+            <!-- In-DOM Accessible R3ACH Card -->
+            <div class="dash-canvas">
+              <article class="dash-card">
+                <svg class="dash-grain" aria-hidden="true"><filter id="ns-grain"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#ns-grain)"/></svg>
+                <span class="dash-blob dash-blob--a" aria-hidden="true"></span>
+                <span class="dash-blob dash-blob--b" aria-hidden="true"></span>
+
+                <!-- LEFT: creator -->
+                <section class="zone zone-left">
+                  <span class="tag">Account</span>
+                  <div class="avatar" id="avatar" aria-hidden="true">
+                    <span class="avatar-initials" id="avatar-initials">?</span>
+                    <img class="avatar-img hidden" id="avatar-img" alt="" />
+                  </div>
+                  <h2 class="display-name"><a class="profile-link" id="display-name" target="_blank" rel="noopener noreferrer">&mdash;</a></h2>
+                  <a class="handle profile-link" id="handle" target="_blank" rel="noopener noreferrer">@&mdash;</a>
+                  <p class="bio" id="bio"></p>
+                </section>
+
+                <!-- CENTER: niche intelligence -->
+                <section class="zone zone-center">
+                  <svg class="stone" viewBox="0 0 400 400" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="ns-metal" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#3a3a3e"/><stop offset=".5" stop-color="#141416"/><stop offset="1" stop-color="#2a2830"/>
+                      </linearGradient>
+                    </defs>
+                    <path d="M88 70c46-38 132-30 170 8 30 30 18 70-14 88-40 22-104 12-140-12-34-22-50-56-16-84z" fill="url(#ns-metal)"/>
+                    <path d="M150 262c40-26 116-22 146 10 24 26 6 66-34 78-46 14-108 0-128-30-12-20-4-44 16-58z" fill="url(#ns-metal)"/>
+                  </svg>
+                  <span class="tag">Niche intelligence</span>
+                  <p class="score-label">Score</p>
+                  <p class="score-value" id="overall-score">&mdash;</p>
+                  <div class="niche-pills" id="niche-list"></div>
+                  <p class="lock-note" id="lock-note">Updated just now · refreshes in 24h</p>
+                </section>
+
+                <!-- RIGHT: metrics -->
+                <section class="zone zone-right">
+                  <span class="tag">Metrics</span>
+                  <span class="metric-basis" id="m-basis">last 90d · 46 posts</span>
+                  <div class="metric"><span class="metric-num" id="m-followers">&mdash;</span><span class="metric-label">Followers</span></div>
+                  <div class="metric"><span class="metric-num" id="m-eng">&mdash;</span><span class="metric-label">Engagement rate</span></div>
+                  <div class="metric"><span class="metric-num" id="m-views">&mdash;</span><span class="metric-label">Impressions</span></div>
+                </section>
+
+                <span class="dash-foot dash-foot--l">NicheScan Pro</span>
+                <span class="dash-foot dash-foot--r"><span class="copy">&copy;</span> xlee</span>
+              </article>
+            </div>
+          </div>
+
+          <!-- TAB 2: Mind & Roast -->
+          <div class="tab-pane hidden" id="mind-tab">
+            <div class="deep-mind-box">
+              <div class="roast-card">
+                <div class="roast-header">
+                  <span class="flame-icon">🔥</span>
+                  <h3>AI TIMELINE ROAST</h3>
                 </div>
-                <h2 class="display-name"><a class="profile-link" id="display-name" target="_blank" rel="noopener noreferrer">&mdash;</a></h2>
-                <a class="handle profile-link" id="handle" target="_blank" rel="noopener noreferrer">@&mdash;</a>
-                <p class="bio" id="bio"></p>
-                <p class="profile-stats hidden" id="profile-stats"></p>
-              </section>
+                <p class="roast-text" id="roast-text">Analyzing timeline habits...</p>
+              </div>
 
-              <!-- CENTER: niche intelligence -->
-              <section class="zone zone-center">
-                <svg class="stone" viewBox="0 0 400 400" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="ns-metal" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0" stop-color="#3a3a3e"/><stop offset=".5" stop-color="#141416"/><stop offset="1" stop-color="#2a2830"/>
-                    </linearGradient>
-                  </defs>
-                  <path d="M88 70c46-38 132-30 170 8 30 30 18 70-14 88-40 22-104 12-140-12-34-22-50-56-16-84z" fill="url(#ns-metal)"/>
-                  <path d="M150 262c40-26 116-22 146 10 24 26 6 66-34 78-46 14-108 0-128-30-12-20-4-44 16-58z" fill="url(#ns-metal)"/>
-                </svg>
-                <span class="tag">Niche intelligence</span>
-                <p class="score-label">Score</p>
-                <p class="score-value" id="overall-score">&mdash;</p>
-                <div class="niche-pills" id="niche-list"></div>
-                <p class="lock-note" id="lock-note"></p>
-              </section>
+              <div class="power-grid">
+                <div class="power-card power-card--super">
+                  <span class="power-badge">⚡ SUPERPOWER</span>
+                  <h4 id="superpower-text">—</h4>
+                  <p>Signature advantage in timeline meta.</p>
+                </div>
+                <div class="power-card power-card--weak">
+                  <span class="power-badge">⚠️ KRYPTONITE</span>
+                  <h4 id="kryptonite-text">—</h4>
+                  <p>Observed flaw or liquidation magnet.</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-              <!-- RIGHT: metrics -->
-              <section class="zone zone-right">
-                <span class="tag">Metrics</span>
-                <span class="metric-basis" id="m-basis"></span>
-                <div class="metric"><span class="metric-num" id="m-followers">&mdash;</span><span class="metric-label">Followers</span></div>
-                <div class="metric"><span class="metric-num" id="m-eng">&mdash;</span><span class="metric-label">Engagement rate</span></div>
-                <div class="metric"><span class="metric-num" id="m-views">&mdash;</span><span class="metric-label">Impressions</span></div>
-              </section>
+          <!-- TAB 3: Hexagon Clout Radar -->
+          <div class="tab-pane hidden" id="radar-tab">
+            <div class="radar-box">
+              <div class="radar-svg-container" id="radar-container"></div>
+              <div class="radar-legend" id="radar-legend"></div>
+            </div>
+          </div>
 
-              <span class="dash-foot dash-foot--l">NicheScan</span>
-              <span class="dash-foot dash-foot--r"><span class="copy">&copy;</span> xlee</span>
-            </article>
+          <!-- TAB 4: Audience Health & Vibe -->
+          <div class="tab-pane hidden" id="vibe-tab">
+            <div class="vibe-grid">
+              <div class="vibe-card">
+                <span class="vibe-lbl">BULLISH SENTIMENT</span>
+                <div class="vibe-val" id="vibe-bullish">—%</div>
+                <div class="meter-bar"><div class="meter-fill" id="meter-bullish"></div></div>
+              </div>
+              <div class="vibe-card">
+                <span class="vibe-lbl">TIMELINE CHAOS / IRONY</span>
+                <div class="vibe-val" id="vibe-chaos">—%</div>
+                <div class="meter-bar"><div class="meter-fill meter-fill--chaos" id="meter-chaos"></div></div>
+              </div>
+              <div class="vibe-card">
+                <span class="vibe-lbl">AUDIENCE HEALTH TIER</span>
+                <div class="vibe-val" id="vibe-health">—</div>
+                <p class="vibe-sub">Estimated bot filter & organic ratio.</p>
+              </div>
+              <div class="vibe-card">
+                <span class="vibe-lbl">CLOUT STATUS</span>
+                <div class="vibe-val" id="vibe-tier">—</div>
+                <p class="vibe-sub">Overall ecosystem ranking.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Versus Battle Results Section -->
+      <section class="panel battle-results hidden" id="battle-results" aria-live="polite">
+        <div class="dash-wrap">
+          <div class="dash-actions">
+            <button type="button" class="btn-ghost" id="battle-back">&larr; Back</button>
+            <div class="dash-actions-right">
+              <a class="btn-download" id="battle-download" download="nichescan-clash.png">Download Battle Card</a>
+              <a class="btn-x" id="battle-share-x" target="_blank" rel="noopener">Share Clash on <b>X</b></a>
+            </div>
+          </div>
+
+          <div class="battle-arena-stage">
+            <div class="battle-card-preview-wrap">
+              <img class="rendered-card-img" id="battle-card-img" alt="Battle Arena Card" />
+            </div>
+
+            <div class="battle-stats-grid">
+              <!-- Player 1 -->
+              <div class="player-box player-1" id="p1-box">
+                <div class="player-header">
+                  <img class="player-avatar" id="p1-avatar" alt="" />
+                  <div>
+                    <h3 id="p1-name">—</h3>
+                    <p id="p1-handle">@—</p>
+                  </div>
+                </div>
+                <div class="player-score" id="p1-score">—</div>
+                <div class="player-details">
+                  <p>Primary: <b id="p1-niche">—</b></p>
+                  <p>Followers: <b id="p1-followers">—</b></p>
+                  <p>Eng Rate: <b id="p1-er">—</b></p>
+                </div>
+              </div>
+
+              <!-- VS Badge -->
+              <div class="arena-vs-badge">
+                <span>VS</span>
+              </div>
+
+              <!-- Player 2 -->
+              <div class="player-box player-2" id="p2-box">
+                <div class="player-header">
+                  <img class="player-avatar" id="p2-avatar" alt="" />
+                  <div>
+                    <h3 id="p2-name">—</h3>
+                    <p id="p2-handle">@—</p>
+                  </div>
+                </div>
+                <div class="player-score" id="p2-score">—</div>
+                <div class="player-details">
+                  <p>Primary: <b id="p2-niche">—</b></p>
+                  <p>Followers: <b id="p2-followers">—</b></p>
+                  <p>Eng Rate: <b id="p2-er">—</b></p>
+                </div>
+              </div>
+            </div>
+
+            <div class="victor-banner" id="victor-banner">
+              👑 CLOUT VICTOR: <span id="victor-name">—</span>
+            </div>
           </div>
         </div>
       </section>
@@ -152,9 +343,10 @@
     </main>
 
     <footer class="site-footer">
-      <p class="footer-copy">&copy; 2026 xlee &middot; NicheScan</p>
+      <p class="footer-copy">&copy; 2026 NicheScan Pro &middot; Autonomous Intelligence System</p>
     </footer>
   </div>
+
   <script src="/app.js"></script>
   <script src="/leaves.js" defer></script>
 </body>
