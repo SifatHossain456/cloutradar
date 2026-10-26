@@ -159,6 +159,13 @@
       if (currentScanData) {
         updateCardPreview();
       }
+      if (currentBattleData) {
+        const bCanvasSrc = generateBattleCanvasCard(currentBattleData, currentTheme);
+        const cardImg = $("#battle-card-img");
+        const dl = $("#battle-download");
+        if (cardImg && bCanvasSrc) cardImg.src = bCanvasSrc;
+        if (dl && bCanvasSrc) dl.href = bCanvasSrc;
+      }
     });
   });
 
@@ -183,22 +190,7 @@
     });
   });
 
-  // --- Autumn Leaves Toggle ---
-  const leavesToggle = $("#leaves-toggle");
-  if (leavesToggle) {
-    leavesToggle.addEventListener("click", () => {
-      const layer = $(".leaves");
-      if (layer) {
-        if (layer.style.display === "none") {
-          layer.style.display = "block";
-          leavesToggle.textContent = "🍂 Leaves: On";
-        } else {
-          layer.style.display = "none";
-          leavesToggle.textContent = "🍂 Leaves: Off";
-        }
-      }
-    });
-  }
+
 
   function escapeHtml(s) {
     return String(s || "")
@@ -434,6 +426,72 @@
     };
   }
 
+  // --- Avatar Preloader & Safe Cross-Origin Visual Buffer ---
+  let cachedAvatarImg = null;
+  let cachedAvatarHandle = "";
+  let cachedBattleAvatars = { u1: null, u2: null };
+
+  function preloadProfileAvatar(username, avatarUrl, onLoaded) {
+    if (!username) return;
+    const norm = username.toLowerCase();
+    if (cachedAvatarImg && cachedAvatarHandle === norm && cachedAvatarImg.complete && cachedAvatarImg.naturalWidth > 0) {
+      if (onLoaded) onLoaded(cachedAvatarImg);
+      return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    cachedAvatarHandle = norm;
+
+    // Use CORS-enabled proxy endpoint first, fallback to direct avatarUrl, then unavatar
+    const proxiedUrl = `/api/avatar/${encodeURIComponent(username)}`;
+    const directUrl = avatarUrl || `https://unavatar.io/x/${encodeURIComponent(username)}`;
+    const unavUrl = `https://unavatar.io/x/${encodeURIComponent(username)}`;
+
+    let loaded = false;
+    img.onload = () => {
+      if (loaded) return;
+      loaded = true;
+      cachedAvatarImg = img;
+      if (onLoaded) onLoaded(img);
+    };
+
+    img.onerror = () => {
+      if (img.src.includes("/api/avatar/")) {
+        img.src = directUrl;
+      } else if (img.src !== unavUrl) {
+        img.src = unavUrl;
+      }
+    };
+
+    img.src = proxiedUrl;
+  }
+
+  function preloadBattleAvatar(playerKey, username, avatarUrl, onLoaded) {
+    if (!username) return;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    const proxiedUrl = `/api/avatar/${encodeURIComponent(username)}`;
+    const directUrl = avatarUrl || `https://unavatar.io/x/${encodeURIComponent(username)}`;
+    const unavUrl = `https://unavatar.io/x/${encodeURIComponent(username)}`;
+
+    let loaded = false;
+    img.onload = () => {
+      if (loaded) return;
+      loaded = true;
+      cachedBattleAvatars[playerKey] = img;
+      if (onLoaded) onLoaded(img);
+    };
+    img.onerror = () => {
+      if (img.src.includes("/api/avatar/")) {
+        img.src = directUrl;
+      } else if (img.src !== unavUrl) {
+        img.src = unavUrl;
+      }
+    };
+    img.src = proxiedUrl;
+  }
+
   // --- High-Performance HTML5 Canvas Card Studio ---
   function generateCanvasCard(profile, themeKey, format) {
     const isStory = (format === "story");
@@ -510,15 +568,13 @@
     ctx.save();
     ctx.font = "bold 15px 'Space Grotesk', system-ui, sans-serif";
     ctx.fillStyle = t.bright;
-    ctx.fillText("📡 CLOUTRADAR // CT INTEL ENGINE v2.0", margin + 36, margin + 48);
+    ctx.fillText("📡 CLOUTRADAR PRO", margin + 36, margin + 48);
 
     ctx.font = "bold 13px 'Space Grotesk', monospace";
     ctx.fillStyle = "#94a3b8";
     ctx.textAlign = "right";
-    ctx.fillText("VERIFIED ON-CHAIN / X INTELLIGENCE", width - margin - 36, margin + 48);
+    ctx.fillText("CT INTELLIGENCE RADAR", width - margin - 36, margin + 48);
     ctx.restore();
-
-    const basisStr = formatBasis(profile.imp_since, profile.imp_posts_n);
 
     if (!isStory) {
       // ===== LANDSCAPE LAYOUT (1200x675) =====
@@ -539,7 +595,9 @@
       ctx.strokeStyle = "#ffffff";
       ctx.stroke();
 
-      const liveImg = $("#avatar-img");
+      const liveImg = (cachedAvatarHandle === (profile.username || "").toLowerCase() && cachedAvatarImg && cachedAvatarImg.complete && cachedAvatarImg.naturalWidth > 0)
+        ? cachedAvatarImg
+        : $("#avatar-img");
       let drewImg = false;
       if (liveImg && liveImg.complete && liveImg.naturalWidth > 0 && !liveImg.classList.contains("hidden")) {
         try {
@@ -597,11 +655,11 @@
         { label: "Era", val: profile.joined_era || "Veteran" }
       ];
 
-      // Basis note above metrics
+      // Clean label above metrics
       ctx.save();
-      ctx.font = "11px 'Space Grotesk', monospace";
-      ctx.fillStyle = "#64748b";
-      ctx.fillText(basisStr, leftX, metricsY - 8);
+      ctx.font = "bold 11px 'Space Grotesk', monospace";
+      ctx.fillStyle = t.bright;
+      ctx.fillText("RADAR METRICS", leftX, metricsY - 8);
       ctx.restore();
 
       metricBoxes.forEach((m, idx) => {
@@ -750,7 +808,7 @@
       ctx.save();
       ctx.font = "12px 'Space Grotesk', monospace";
       ctx.fillStyle = "#64748b";
-      ctx.fillText("Generated live by CloutRadar · The Ultimate X Niche Scanner", margin + 48, height - margin - 24);
+      ctx.fillText("CloutRadar Pro · CT Intelligence Radar", margin + 48, height - margin - 24);
       ctx.textAlign = "right";
       ctx.fillText("cloutradar.vercel.app", width - margin - 48, height - margin - 24);
       ctx.restore();
@@ -774,7 +832,9 @@
       ctx.strokeStyle = "#ffffff";
       ctx.stroke();
 
-      const liveImg = $("#avatar-img");
+      const liveImg = (cachedAvatarHandle === (profile.username || "").toLowerCase() && cachedAvatarImg && cachedAvatarImg.complete && cachedAvatarImg.naturalWidth > 0)
+        ? cachedAvatarImg
+        : $("#avatar-img");
       let drewImg = false;
       if (liveImg && liveImg.complete && liveImg.naturalWidth > 0 && !liveImg.classList.contains("hidden")) {
         try {
@@ -868,7 +928,7 @@
       // 6 Metrics Rows
       const metricStartY = nicheStartY + 250;
       const metrics = [
-        { label: `Followers (${basisStr})`, val: fmtNum(profile.followers) },
+        { label: "Followers", val: fmtNum(profile.followers) },
         { label: "Engagement Rate", val: (profile.er_median * 100).toFixed(1) + "%" },
         { label: "Impressions", val: fmtNum(profile.impressions) },
         { label: "Lifetime Posts", val: profile.tweets_str || fmtNum(profile.total_tweets || 0) },
@@ -912,7 +972,7 @@
       ctx.font = "bold 20px 'Space Grotesk', monospace";
       ctx.fillStyle = "#64748b";
       ctx.textAlign = "center";
-      ctx.fillText("CLOUTRADAR // CT INTEL ENGINE", cx, height - margin - 40);
+      ctx.fillText("CLOUTRADAR PRO · CT INTEL", cx, height - margin - 40);
       ctx.restore();
     }
 
@@ -925,20 +985,15 @@
     const imgEl = $("#rendered-card");
     const dlEl = $("#card-download");
 
+    // Client canvas card takes precedence so high-res live profile picture and active theme apply
     const canvasSrc = generateCanvasCard(currentScanData, currentTheme, currentFormat);
-    let src = canvasSrc;
-    if (currentFormat === "story" && currentScanData.story_card_data_url) {
-      src = currentScanData.story_card_data_url;
-    } else if (currentFormat === "landscape" && currentScanData.card_data_url) {
-      src = currentScanData.card_data_url;
-    }
+    const src = canvasSrc || (currentFormat === "story" ? currentScanData.story_card_data_url : currentScanData.card_data_url) || "";
 
-    if (imgEl) {
-      imgEl.onerror = () => { imgEl.src = canvasSrc; };
+    if (imgEl && src) {
       imgEl.src = src;
     }
 
-    if (dlEl) {
+    if (dlEl && src) {
       dlEl.href = src;
       dlEl.setAttribute("download", `cloutradar-${currentScanData.username}-${currentTheme}-${currentFormat}.png`);
     }
@@ -1031,6 +1086,16 @@
     if (initEl) {
       initEl.textContent = (data.display_name || data.username || "C").charAt(0).toUpperCase();
     }
+
+    preloadProfileAvatar(data.username, data.avatar_url, (loadedImg) => {
+      if (imgEl) {
+        imgEl.src = loadedImg.src;
+        imgEl.classList.remove("hidden");
+        if (initEl) initEl.classList.add("hidden");
+      }
+      updateCardPreview();
+    });
+
     if (imgEl) {
       imgEl.onerror = () => {
         imgEl.classList.add("hidden");
@@ -1117,7 +1182,7 @@
     const u1 = data.user1;
     const u2 = data.user2;
 
-    $("#p1-avatar").src = u1.avatar_url || `https://unavatar.io/x/${u1.username}`;
+    $("#p1-avatar").src = u1.avatar_url || `/api/avatar/${u1.username}`;
     $("#p1-name").textContent = u1.display_name;
     $("#p1-handle").textContent = `@${u1.username}`;
     animateValue($("#p1-score"), 0, u1.score, 750, (v) => String(Math.round(v)));
@@ -1129,7 +1194,7 @@
     const p1Posts = $("#p1-posts");
     if (p1Posts) p1Posts.textContent = u1.tweets_str || fmtNum(u1.tweets || u1.total_tweets || 0);
 
-    $("#p2-avatar").src = u2.avatar_url || `https://unavatar.io/x/${u2.username}`;
+    $("#p2-avatar").src = u2.avatar_url || `/api/avatar/${u2.username}`;
     $("#p2-name").textContent = u2.display_name;
     $("#p2-handle").textContent = `@${u2.username}`;
     animateValue($("#p2-score"), 0, u2.score, 750, (v) => String(Math.round(v)));
@@ -1143,15 +1208,24 @@
 
     $("#victor-name").textContent = `@${data.victor.toUpperCase()}`;
 
-    const cardImg = $("#battle-card-img");
-    if (cardImg && data.battle_card_data_url) {
-      cardImg.src = data.battle_card_data_url;
+    function updateBattlePreview() {
+      const bCanvasSrc = generateBattleCanvasCard(currentBattleData, currentTheme);
+      const cardImg = $("#battle-card-img");
+      const dl = $("#battle-download");
+      const src = bCanvasSrc || currentBattleData.battle_card_data_url;
+      if (cardImg && src) {
+        cardImg.src = src;
+      }
+      if (dl && src) {
+        dl.href = src;
+        dl.setAttribute("download", `cloutradar-clash-${u1.username}-vs-${u2.username}.png`);
+      }
     }
-    const dl = $("#battle-download");
-    if (dl && data.battle_card_data_url) {
-      dl.href = data.battle_card_data_url;
-      dl.setAttribute("download", `cloutradar-clash-${u1.username}-vs-${u2.username}.png`);
-    }
+
+    preloadBattleAvatar("u1", u1.username, u1.avatar_url, () => updateBattlePreview());
+    preloadBattleAvatar("u2", u2.username, u2.avatar_url, () => updateBattlePreview());
+
+    updateBattlePreview();
 
     const shareX = $("#battle-share-x");
     if (shareX) {
@@ -1263,26 +1337,6 @@
       }
     }
 
-    // Layer 3: Direct Official Scanner API (syndication fallback)
-    if (!data || !data.username) {
-      try {
-        setStep(`Querying live X syndication radar for @${handle}...`, 85);
-        const upRes = await fetch("https://nichescan-mu.vercel.app/api/scan", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: handle, src: "typed" })
-        });
-        if (upRes.ok) {
-          const upData = await upRes.json();
-          if (upData && upData.username) {
-            data = upData;
-          }
-        }
-      } catch (err) {
-        console.warn("Direct official scanner unreachable.", err);
-      }
-    }
-
     progressBar.style.width = "100%";
     await sleep(200);
     scanBtn.disabled = false;
@@ -1327,15 +1381,11 @@
       }
     } catch (_) {}
 
-    // Tier 2: Upstream timeline scanner
+    // Tier 2: Dedicated local proxy avatar & profile endpoint
     try {
-      const upRes = await fetch("https://nichescan-mu.vercel.app/api/scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: handle, src: "typed" })
-      });
-      if (upRes.ok) {
-        const d = await upRes.json();
+      const localRes = await fetch(`/api/user/${handle}`);
+      if (localRes.ok) {
+        const d = await localRes.json();
         if (d && d.username) return d;
       }
     } catch (_) {}
@@ -1344,7 +1394,21 @@
   }
 
   // --- High-Performance HTML5 Dual-Player Battle Card Studio ---
-  function generateBattleCanvasCard(p1, p2, victorHandle, themeKey) {
+  function generateBattleCanvasCard(arg1, arg2, arg3, arg4) {
+    let p1, p2, victorHandle, themeKey;
+    if (arg1 && arg1.user1 && arg1.user2) {
+      p1 = arg1.user1;
+      p2 = arg1.user2;
+      victorHandle = arg1.victor;
+      themeKey = arg2 || currentTheme;
+    } else {
+      p1 = arg1;
+      p2 = arg2;
+      victorHandle = arg3;
+      themeKey = arg4 || currentTheme;
+    }
+    if (!p1 || !p2) return "";
+
     const width = 1200;
     const height = 675;
     const canvas = document.createElement("canvas");
@@ -1401,11 +1465,11 @@
     ctx.save();
     ctx.font = "bold 15px 'Space Grotesk', system-ui, sans-serif";
     ctx.fillStyle = t.bright;
-    ctx.fillText("⚔️ CLOUTRADAR // CT VERSUS ARENA", margin + 32, margin + 45);
+    ctx.fillText("⚔️ CLOUTRADAR // VERSUS ARENA", margin + 32, margin + 45);
     ctx.font = "bold 13px 'Space Grotesk', monospace";
     ctx.fillStyle = "#94a3b8";
     ctx.textAlign = "right";
-    ctx.fillText("OFFICIAL ON-CHAIN CT CLASH", width - margin - 32, margin + 45);
+    ctx.fillText("CT RADAR CLASH", width - margin - 32, margin + 45);
     ctx.restore();
 
     // Helper: Draw Player Box
@@ -1428,9 +1492,12 @@
       ctx.strokeStyle = "#ffffff";
       ctx.stroke();
 
-      // Check if avatar image is rendered on DOM
+      // Check if avatar image is preloaded or rendered on DOM
+      const preloaded = isLeft ? cachedBattleAvatars.u1 : cachedBattleAvatars.u2;
       const domAvatarId = isLeft ? "#p1-avatar" : "#p2-avatar";
-      const domImg = document.querySelector(domAvatarId);
+      const domImg = (preloaded && preloaded.complete && preloaded.naturalWidth > 0)
+        ? preloaded
+        : document.querySelector(domAvatarId);
       let drewImg = false;
       if (domImg && domImg.complete && domImg.naturalWidth > 0) {
         try {
@@ -1575,7 +1642,7 @@
     ctx.save();
     ctx.font = "11px 'Space Grotesk', monospace";
     ctx.fillStyle = "#64748b";
-    ctx.fillText("Generated live by CloutRadar Versus Arena", margin + 32, height - margin - 15);
+    ctx.fillText("CloutRadar Pro · Versus Arena", margin + 32, height - margin - 15);
     ctx.textAlign = "right";
     ctx.fillText("cloutradar.vercel.app", width - margin - 32, height - margin - 15);
     ctx.restore();

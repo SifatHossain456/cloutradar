@@ -37,8 +37,8 @@ Customize your share card instantly across 5 distinct cyberpunk visual themes:
 Interactive visual SVG radar charting 6 core metrics:
 `Reach` · `Alpha` · `Meme` · `Tech` · `Degen` · `Activity`.
 
-### 6. 🍂 Ambient Fall Atmosphere
-Falling autumn leaves physics system with live user toggle (`🍂 Leaves: On/Off`).
+### 6. 📡 Real Profile Pictures & Live Radar Sweep HUD
+Original cyberpunk radar sweeping loader HUD with real Twitter profile avatar rendering across all card exports.
 
 ---
 

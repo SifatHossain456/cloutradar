@@ -25,7 +25,6 @@
       </div>
       <div class="header-actions">
         <a href="/stats" class="header-link" title="Private Stats Dashboard">Stats</a>
-        <button type="button" class="leaves-toggle" id="leaves-toggle" title="Toggle autumn leaves animation">🍂 Leaves</button>
       </div>
     </header>
 
@@ -93,15 +92,22 @@
 
       <!-- Scanning -->
       <section class="panel scanning hidden" id="scanning" aria-live="polite">
-        <div class="scan-status-card peng-loader">
-          <div class="peng-stage" aria-hidden="true">
-            <span class="peng-radar"></span>
-            <span class="peng-ring"></span>
-            <span class="peng-scanline"></span>
-            <img class="peng-img" src="/penguin.webp" alt="" width="248" height="300" />
-            <img class="peng-pfp" id="loader-pfp" alt="" referrerpolicy="no-referrer" />
+        <div class="scan-status-card cyber-radar-loader">
+          <div class="cyber-radar-stage" aria-hidden="true">
+            <div class="cyber-radar-grid"></div>
+            <div class="cyber-radar-rings">
+              <span class="cyber-ring r1"></span>
+              <span class="cyber-ring r2"></span>
+              <span class="cyber-ring r3"></span>
+            </div>
+            <div class="cyber-radar-sweep"></div>
+            <div class="cyber-radar-crosshair"></div>
+            <div class="cyber-radar-core">
+              <span class="cyber-radar-icon">📡</span>
+            </div>
+            <img class="radar-pfp hidden" id="loader-pfp" alt="" referrerpolicy="no-referrer" />
           </div>
-          <p class="scan-status" id="scan-status">Scanning&hellip;</p>
+          <p class="scan-status" id="scan-status">Scanning timeline intelligence&hellip;</p>
           <div class="progress-track">
             <div class="progress-bar" id="progress-bar"></div>
           </div>
@@ -176,26 +182,15 @@
 
                 <!-- CENTER: niche intelligence -->
                 <section class="zone zone-center">
-                  <svg class="stone" viewBox="0 0 400 400" aria-hidden="true">
-                    <defs>
-                      <linearGradient id="ns-metal" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0" stop-color="#3a3a3e"/><stop offset=".5" stop-color="#141416"/><stop offset="1" stop-color="#2a2830"/>
-                      </linearGradient>
-                    </defs>
-                    <path d="M88 70c46-38 132-30 170 8 30 30 18 70-14 88-40 22-104 12-140-12-34-22-50-56-16-84z" fill="url(#ns-metal)"/>
-                    <path d="M150 262c40-26 116-22 146 10 24 26 6 66-34 78-46 14-108 0-128-30-12-20-4-44 16-58z" fill="url(#ns-metal)"/>
-                  </svg>
                   <span class="tag">Niche intelligence</span>
                   <p class="score-label">Score</p>
                   <p class="score-value" id="overall-score">&mdash;</p>
                   <div class="niche-pills" id="niche-list"></div>
-                  <p class="lock-note" id="lock-note">Updated just now · refreshes in 24h</p>
                 </section>
 
                 <!-- RIGHT: metrics -->
                 <section class="zone zone-right">
                   <span class="tag">Metrics Intelligence</span>
-                  <span class="metric-basis" id="m-basis">last 90d · 46 posts</span>
                   <div class="metrics-grid">
                     <div class="metric"><span class="metric-num" id="m-followers">&mdash;</span><span class="metric-label">Followers</span></div>
                     <div class="metric"><span class="metric-num" id="m-eng">&mdash;</span><span class="metric-label">Engagement rate</span></div>
@@ -206,8 +201,8 @@
                   </div>
                 </section>
 
-                <span class="dash-foot dash-foot--l">CloutRadar</span>
-                <span class="dash-foot dash-foot--r"><span class="copy">&copy;</span> Sifat</span>
+                <span class="dash-foot dash-foot--l">CloutRadar Pro</span>
+                <span class="dash-foot dash-foot--r">&copy; CloutRadar</span>
               </article>
             </div>
           </div>
@@ -357,6 +352,5 @@
   </div>
 
   <script src="/app.js"></script>
-  <script src="/leaves.js" defer></script>
 </body>
 </html>
