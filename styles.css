@@ -120,12 +120,14 @@ body {
 .page {
   position: relative;
   z-index: 1;
-  max-width: 720px;
+  width: 100%;
+  max-width: 780px;
   margin: 0 auto;
   min-height: 100vh;
   padding: 1.5rem 1.25rem 3rem;
   display: flex;
   flex-direction: column;
+  transition: max-width var(--ease);
 }
 
 .hidden {
@@ -1406,24 +1408,213 @@ body {
   transform: translateY(-2px);
 }
 
-/* Responsive Media Queries */
-@media (max-width: 680px) {
+/* --- Responsive Capabilities: Desktop PC & Mobile Device Systems --- */
+
+/* 1. PC & Large Screens (min-width: 900px, 1200px) */
+@media (min-width: 900px) {
+  .page {
+    max-width: 980px;
+    padding: 2.25rem 2rem 4rem;
+  }
+
+  .dash-card {
+    grid-template-columns: 1fr 1.15fr 1.05fr;
+    gap: 1.5rem;
+    padding: 1.75rem;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+  }
+
+  .metric {
+    padding: 10px 12px;
+  }
+
+  .metric-num {
+    font-size: 1.25rem;
+  }
+
+  .battle-stats-grid {
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .player-box {
+    padding: 1.5rem;
+  }
+
+  .power-grid,
+  .vibe-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  .radar-box {
+    padding: 2rem;
+  }
+
+  .radar-svg-container {
+    max-width: 440px;
+    height: 360px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .page {
+    max-width: 1100px;
+  }
+
+  .dash-card {
+    gap: 1.75rem;
+    padding: 2rem;
+  }
+}
+
+/* 2. Tablets & Mobile (< 768px) */
+@media (max-width: 768px) {
+  .page {
+    padding: 1.25rem 1rem 3rem;
+  }
+
   .dash-card {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 1.25rem;
+    padding: 1.25rem;
   }
+
+  .studio-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    padding: 10px 14px;
+  }
+
+  .studio-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    width: 100%;
+  }
+
+  .theme-chips,
+  .format-chips {
+    overflow-x: auto;
+    width: 100%;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  .theme-chip,
+  .format-chip {
+    flex-shrink: 0;
+  }
+
+  .dash-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+
+  .dash-actions-right {
+    width: 100%;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .dash-actions-right > * {
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+  }
+
   .power-grid,
   .vibe-grid {
     grid-template-columns: 1fr;
+    gap: 0.85rem;
   }
+
   .battle-stats-grid {
     grid-template-columns: 1fr;
+    gap: 0.85rem;
   }
+
   .arena-vs-badge {
     margin: 0.5rem auto;
   }
-  .studio-bar {
+}
+
+/* 3. Small Mobile Phones (< 600px & < 480px) */
+@media (max-width: 600px) {
+  .battle-inputs {
     flex-direction: column;
-    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .battle-input {
+    width: 100%;
+  }
+
+  .vs-divider {
+    padding: 0.2rem 0;
+    margin: 0 auto;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.45rem;
+  }
+
+  .metric {
+    padding: 7px 8px;
+  }
+
+  .metric-num {
+    font-size: 1.05rem;
+  }
+
+  .metric-label {
+    font-size: 0.62rem;
+  }
+
+  .display {
+    font-size: clamp(1.8rem, 8vw, 2.4rem);
+  }
+
+  .score-value {
+    font-size: 2.5rem;
+  }
+
+  .player-score {
+    font-size: 2rem;
+  }
+}
+
+/* 4. Touch-first Ergonomics */
+@media (hover: none) and (pointer: coarse) {
+  .btn-primary,
+  .btn-battle,
+  .btn-download,
+  .btn-ghost,
+  .btn-x,
+  .mode-tab {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .input-wrap input {
+    font-size: 16px; /* Prevents auto-zoom in iOS Safari */
+  }
+
+  .theme-chip,
+  .format-chip {
+    padding: 6px 14px;
+    font-size: 0.82rem;
   }
 }
