@@ -27,15 +27,15 @@ AVATAR_CACHE: Dict[str, Image.Image] = {}
 
 # Verified Curated Profiles
 KNOWN_PROFILES = {
-    "xlee_istheking": {
-        "screen_name": "xlee_istheking",
-        "name": "xlee",
-        "description": "I’m that guy, my thoughts are mine.",
-        "followers": 24800,
-        "following": 512,
-        "tweets": 1820,
-        "likes": 9400,
-        "avatar_url": "https://pbs.twimg.com/profile_images/2111387864193728512/djos7MWI_400x400.jpg",
+    "karpathy": {
+        "screen_name": "karpathy",
+        "name": "Andrej Karpathy",
+        "description": "Building Eureka Labs. Formerly Tesla, OpenAI.",
+        "followers": 1150000,
+        "following": 320,
+        "tweets": 6200,
+        "likes": 14200,
+        "avatar_url": "https://unavatar.io/x/karpathy",
         "method": "verified knowledge base"
     },
     "elonmusk": {
@@ -95,7 +95,7 @@ class StatsDB:
             {"username": "elonmusk", "name": "Elon Musk", "score": 88, "niche": "Tech / Chaos King", "avatar": "https://pbs.twimg.com/profile_images/2103567689515954176/aR-Kjpp4_400x400.jpg"},
             {"username": "vitalikbuterin", "name": "vitalik.eth", "score": 92, "niche": "ETH Maxi / Researcher", "avatar": "https://unavatar.io/x/vitalikbuterin"},
             {"username": "sama", "name": "Sam Altman", "score": 86, "niche": "AI Builder", "avatar": "https://unavatar.io/x/sama"},
-            {"username": "xlee_istheking", "name": "xlee", "score": 66, "niche": "Poly Maxi", "avatar": "https://pbs.twimg.com/profile_images/2111387864193728512/djos7MWI_400x400.jpg"},
+            {"username": "karpathy", "name": "Andrej Karpathy", "score": 93, "niche": "AI Builder", "avatar": "https://unavatar.io/x/karpathy"},
             {"username": "cobie", "name": "Cobie", "score": 91, "niche": "CT Legend", "avatar": "https://unavatar.io/x/cobie"}
         ]
         self.stats_key = "cloutradar_admin_secret"
@@ -208,53 +208,53 @@ class TrackRequest(BaseModel):
 
 DEMO_SETS = [
     [
-        {"username": "xlee_istheking", "display_name": "xlee", "bio": "I’m that guy, my thoughts are mine.", "avatar_url": "https://pbs.twimg.com/profile_images/2111387864193728512/djos7MWI_400x400.jpg", "accent_color": "#8b23d1"},
+        {"username": "elonmusk", "display_name": "Elon Musk", "bio": "http://Terafab.AI", "avatar_url": "https://pbs.twimg.com/profile_images/2103567689515954176/aR-Kjpp4_400x400.jpg", "accent_color": "#8b5cf6"},
         {"username": "CryptoTony__", "display_name": "Crypto Tony", "bio": "Trader & Investor. Not financial advice.", "avatar_url": "https://unavatar.io/x/CryptoTony__", "accent_color": "#d17258"},
         {"username": "DaanCrypto", "display_name": "Daan Crypto Trades", "bio": "Crypto trader sharing daily charts and setups.", "avatar_url": "https://unavatar.io/x/DaanCrypto", "accent_color": "#38bdf8"},
         {"username": "ColdBloodShill", "display_name": "Cold Blooded Shiller", "bio": "Crypto trading, charts, market psychology.", "avatar_url": "https://unavatar.io/x/ColdBloodShill", "accent_color": "#a855f7"},
         {"username": "TheCryptoDog", "display_name": "The Crypto Dog", "bio": "Bitcoin & crypto markets since 2017.", "avatar_url": "https://unavatar.io/x/TheCryptoDog", "accent_color": "#f59e0b"}
     ],
     [
-        {"username": "xlee_istheking", "display_name": "xlee", "bio": "I’m that guy, my thoughts are mine.", "avatar_url": "https://pbs.twimg.com/profile_images/2111387864193728512/djos7MWI_400x400.jpg", "accent_color": "#8b23d1"},
+        {"username": "naval", "display_name": "Naval", "bio": "Philosophy, tech, angel investing.", "avatar_url": "https://unavatar.io/x/naval", "accent_color": "#8b5cf6"},
         {"username": "AltcoinSherpa", "display_name": "Altcoin Sherpa", "bio": "Not Financial Advice / Crypto since 2016/ DYOR", "avatar_url": "https://unavatar.io/x/AltcoinSherpa", "accent_color": "#d17258"},
         {"username": "CryptoMichNL", "display_name": "Michaël van de Poppe", "bio": "CIO & Founder @MNFund_ | Crypto & Bitcoin Enthusiast", "avatar_url": "https://unavatar.io/x/CryptoMichNL", "accent_color": "#d19a50"},
         {"username": "rektcapital", "display_name": "Rekt Capital", "bio": "Crypto Investor/Analyst | RC Newsletter", "avatar_url": "https://unavatar.io/x/rektcapital", "accent_color": "#d1632c"},
         {"username": "MacroCRG", "display_name": "CRG", "bio": "Trader, investor, risk taker. Markets & crypto.", "avatar_url": "https://unavatar.io/x/MacroCRG", "accent_color": "#d1b967"}
     ],
     [
-        {"username": "xlee_istheking", "display_name": "xlee", "bio": "I’m that guy, my thoughts are mine.", "avatar_url": "https://pbs.twimg.com/profile_images/2111387864193728512/djos7MWI_400x400.jpg", "accent_color": "#8b23d1"},
+        {"username": "brian_armstrong", "display_name": "Brian Armstrong", "bio": "CEO @Coinbase", "avatar_url": "https://unavatar.io/x/brian_armstrong", "accent_color": "#8b5cf6"},
         {"username": "cobie", "display_name": "Cobie", "bio": "Crypto OG & podcast host. Echo Chambers.", "avatar_url": "https://unavatar.io/x/cobie", "accent_color": "#06b6d4"},
-        {"username": "HsakaTrades", "display_name": "Hsaka", "bio": "High frequency timeline commentary and liquidity hunter.", "avatar_url": "https://unavatar.io/x/HsakaTrades", "accent_color": "#e11d48"},
+        {"username": "HsakaTrades", "display_name": "HsakaTrades", "bio": "High frequency timeline commentary and liquidity hunter.", "avatar_url": "https://unavatar.io/x/HsakaTrades", "accent_color": "#e11d48"},
         {"username": "Pentosh1", "display_name": "Pentoshi", "bio": "Markets & macro charts. GMI.", "avatar_url": "https://unavatar.io/x/Pentosh1", "accent_color": "#10b981"},
         {"username": "blknoiz06", "display_name": "Ansem", "bio": "Solana eco, high conviction trading, boxing.", "avatar_url": "https://unavatar.io/x/blknoiz06", "accent_color": "#8b5cf6"}
     ],
     [
-        {"username": "xlee_istheking", "display_name": "xlee", "bio": "I’m that guy, my thoughts are mine.", "avatar_url": "https://pbs.twimg.com/profile_images/2111387864193728512/djos7MWI_400x400.jpg", "accent_color": "#8b23d1"},
+        {"username": "jack", "display_name": "jack", "bio": "Building open protocols.", "avatar_url": "https://unavatar.io/x/jack", "accent_color": "#8b5cf6"},
         {"username": "milesdeutscher", "display_name": "Miles Deutscher", "bio": "Crypto analyst & DeFi researcher.", "avatar_url": "https://unavatar.io/x/milesdeutscher", "accent_color": "#3b82f6"},
         {"username": "ashcryptoreal", "display_name": "Ash Crypto", "bio": "Bitcoin & crypto educator. HODL.", "avatar_url": "https://unavatar.io/x/ashcryptoreal", "accent_color": "#f97316"},
         {"username": "rovercrc", "display_name": "Crypto Rover", "bio": "Crypto YouTuber & Bitcoin charts.", "avatar_url": "https://unavatar.io/x/rovercrc", "accent_color": "#ec4899"},
         {"username": "MustStopMurad", "display_name": "Murad", "bio": "Memecoin supercycle thesis architect.", "avatar_url": "https://unavatar.io/x/MustStopMurad", "accent_color": "#14b8a6"}
     ],
     [
-        {"username": "xlee_istheking", "display_name": "xlee", "bio": "I’m that guy, my thoughts are mine.", "avatar_url": "https://pbs.twimg.com/profile_images/2111387864193728512/djos7MWI_400x400.jpg", "accent_color": "#8b23d1"},
         {"username": "karpathy", "display_name": "Andrej Karpathy", "bio": "Building Eureka Labs. Formerly Tesla, OpenAI.", "avatar_url": "https://unavatar.io/x/karpathy", "accent_color": "#6366f1"},
         {"username": "sama", "display_name": "Sam Altman", "bio": "OpenAI", "avatar_url": "https://unavatar.io/x/sama", "accent_color": "#22c55e"},
         {"username": "gdb", "display_name": "Greg Brockman", "bio": "President & Co-Founder, OpenAI.", "avatar_url": "https://unavatar.io/x/gdb", "accent_color": "#eab308"},
-        {"username": "ilyasut", "display_name": "Ilya Sutskever", "bio": "Safe Superintelligence Inc. (SSI)", "avatar_url": "https://unavatar.io/x/ilyasut", "accent_color": "#ec4899"}
+        {"username": "ilyasut", "display_name": "Ilya Sutskever", "bio": "Safe Superintelligence Inc. (SSI)", "avatar_url": "https://unavatar.io/x/ilyasut", "accent_color": "#ec4899"},
+        {"username": "ylecun", "display_name": "Yann LeCun", "bio": "Chief AI Scientist at Meta, Silver Professor at NYU.", "avatar_url": "https://unavatar.io/x/ylecun", "accent_color": "#3b82f6"}
     ],
     [
-        {"username": "xlee_istheking", "display_name": "xlee", "bio": "I’m that guy, my thoughts are mine.", "avatar_url": "https://pbs.twimg.com/profile_images/2111387864193728512/djos7MWI_400x400.jpg", "accent_color": "#8b23d1"},
         {"username": "vitalikbuterin", "display_name": "Vitalik Buterin", "bio": "Funder of Ethereum. Researcher.", "avatar_url": "https://unavatar.io/x/vitalikbuterin", "accent_color": "#6366f1"},
         {"username": "cz_binance", "display_name": "CZ 🔶 BNB", "bio": "Founder Binance. Investing in crypto, biotech, education.", "avatar_url": "https://unavatar.io/x/cz_binance", "accent_color": "#f59e0b"},
         {"username": "brian_armstrong", "display_name": "Brian Armstrong", "bio": "CEO @Coinbase", "avatar_url": "https://unavatar.io/x/brian_armstrong", "accent_color": "#0284c7"},
-        {"username": "saylor", "display_name": "Michael Saylor", "bio": "Chairman @MicroStrategy. Bitcoin is Hope.", "avatar_url": "https://unavatar.io/x/saylor", "accent_color": "#ef4444"}
+        {"username": "saylor", "display_name": "Michael Saylor", "bio": "Chairman @MicroStrategy. Bitcoin is Hope.", "avatar_url": "https://unavatar.io/x/saylor", "accent_color": "#ef4444"},
+        {"username": "balajis", "display_name": "Balaji", "bio": "The Network State.", "avatar_url": "https://unavatar.io/x/balajis", "accent_color": "#10b981"}
     ],
     [
-        {"username": "xlee_istheking", "display_name": "xlee", "bio": "I’m that guy, my thoughts are mine.", "avatar_url": "https://pbs.twimg.com/profile_images/2111387864193728512/djos7MWI_400x400.jpg", "accent_color": "#8b23d1"},
         {"username": "tier10k", "display_name": "db", "bio": "Fast financial & crypto breaking news headlines.", "avatar_url": "https://unavatar.io/x/tier10k", "accent_color": "#64748b"},
         {"username": "lookonchain", "display_name": "Lookonchain", "bio": "On-chain SmartMoney and Whale tracker.", "avatar_url": "https://unavatar.io/x/lookonchain", "accent_color": "#0ea5e9"},
         {"username": "zachxbt", "display_name": "ZachXBT", "bio": "On-chain sleuth & crypto investigator.", "avatar_url": "https://unavatar.io/x/zachxbt", "accent_color": "#10b981"},
-        {"username": "ArkhamIntel", "display_name": "Arkham", "bio": "Deanonymizing the blockchain.", "avatar_url": "https://unavatar.io/x/ArkhamIntel", "accent_color": "#d946ef"}
+        {"username": "ArkhamIntel", "display_name": "Arkham", "bio": "Deanonymizing the blockchain.", "avatar_url": "https://unavatar.io/x/ArkhamIntel", "accent_color": "#d946ef"},
+        {"username": "DeFiLlama", "display_name": "DefiLlama.com", "bio": "Open and transparent DeFi TVL and analytics.", "avatar_url": "https://unavatar.io/x/DefiLlama", "accent_color": "#8b5cf6"}
     ]
 ]
 

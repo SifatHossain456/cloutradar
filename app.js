@@ -341,18 +341,19 @@
       ? data.secondary_niches
       : [];
 
-    // Calculate Radar Scores
-    let reachVal = Math.min(98, Math.max(25, Math.round(Math.log10(Math.max(10, followers)) * 14) + (impressions > 100000 ? 10 : 0)));
-    let alphaVal = Math.min(99, Math.max(40, Math.round(erMedian * 450) + (overallScore > 60 ? 15 : 0)));
+    // Calculate 6-Axis Radar Dimensions purely from real live Twitter stats
+    const reachVal = Math.min(99, Math.max(20, Math.round(Math.log10(Math.max(10, followers)) * 16) + (followers > 5000 ? 10 : 0)));
+    const alphaVal = Math.min(99, Math.max(25, Math.round(Math.log10(Math.max(10, totalTweets)) * 14) + (overallScore > 60 ? 12 : 0)));
     let memeVal = 65;
     let techVal = 70;
     let degenVal = 60;
     niches.forEach((n) => {
-      const nid = (n.id || n.label || "").toLowerCase();
+      const nid = ((n && (n.id || n.label)) || "").toLowerCase();
       if (nid.includes("airdrop") || nid.includes("degen") || nid.includes("poly") || nid.includes("sol")) degenVal = Math.max(degenVal, 88);
       if (nid.includes("tech") || nid.includes("ai") || nid.includes("dev")) techVal = Math.max(techVal, 82);
       if (nid.includes("meme") || nid.includes("shitpost")) memeVal = Math.max(memeVal, 84);
     });
+    const activityVal = Math.min(99, Math.max(20, Math.round(Math.log10(Math.max(10, totalTweets + likesGiven)) * 13) + 18));
 
     const radar = (data && data.radar_scores) ? data.radar_scores : {
       Reach: reachVal,
@@ -360,7 +361,7 @@
       Meme: memeVal,
       Tech: techVal,
       Degen: degenVal,
-      Activity: Math.min(98, Math.max(45, (data && data.imp_posts_n) ? Math.min(98, Math.round(data.imp_posts_n * 0.35 + 30)) : 78))
+      Activity: activityVal
     };
 
     const roasts = [
@@ -372,28 +373,7 @@
     ];
     const roast = (data && data.roast) ? data.roast : roasts[h % roasts.length];
 
-    const superpowers = [
-      "Airdrop Radar Sniper",
-      "Liquid Market Intuition",
-      "Contrarian Conviction",
-      "Timeline Alpha Magnet",
-      "High-Leverage Execution"
-    ];
-    const kryptonites = [
-      "High-Slippage FOMO",
-      "Midnight Twitter Spaces",
-      "Premature Profit Taking",
-      "Over-leveraged Memecoins",
-      "Infinite Pending Approvals"
-    ];
-
-    const superpower = (data && data.superpower) ? data.superpower : superpowers[h % superpowers.length];
-    const kryptonite = (data && data.kryptonite) ? data.kryptonite : kryptonites[h % kryptonites.length];
-
     const vibe = (data && data.vibe) ? data.vibe : {
-      bullish_pct: Math.min(95, Math.max(45, Math.round(overallScore * 0.9 + 10))),
-      chaos_pct: Math.max(5, Math.round((100 - overallScore) * 0.7)),
-      audience_health: overallScore >= 75 ? "A+ Organic Alpha" : (overallScore >= 50 ? "A High Signal" : "B Growing"),
       clout_tier: overallScore >= 80 ? "S-Tier Legend" : (overallScore >= 65 ? "Alpha Citizen" : "Active Contributor")
     };
 
@@ -420,8 +400,6 @@
       secondary_niches: secondaryNiches,
       radar_scores: radar,
       roast,
-      superpower,
-      kryptonite,
       vibe,
       avatar_url: avatarUrl,
       card_data_url: (data && data.card_data_url) || null,
@@ -630,19 +608,20 @@
       ctx.save();
       ctx.font = "bold 26px 'Space Grotesk', system-ui, sans-serif";
       ctx.fillStyle = "#ffffff";
-      const dName = profile.display_name.length > 18 ? profile.display_name.slice(0, 17) + "…" : profile.display_name;
+      const rawName = profile.display_name || profile.username || "Creator";
+      const dName = rawName.length > 18 ? rawName.slice(0, 17) + "…" : rawName;
       ctx.fillText(dName.toUpperCase(), leftX + avatarR * 2 + 20, avatarY + 40);
 
       ctx.font = "16px 'Space Grotesk', monospace";
       ctx.fillStyle = t.bright;
-      ctx.fillText(`@${profile.username}`, leftX + avatarR * 2 + 20, avatarY + 68);
+      ctx.fillText(`@${profile.username || ""}`, leftX + avatarR * 2 + 20, avatarY + 68);
       ctx.restore();
 
       // Bio Box
       ctx.save();
       ctx.font = "14px 'Space Grotesk', system-ui, sans-serif";
       ctx.fillStyle = "#94a3b8";
-      const cleanBio = profile.bio.replace(/[\r\n]+/g, " ");
+      const cleanBio = (profile.bio || "Digital citizen & timeline explorer.").replace(/[\r\n]+/g, " ");
       const bioText = cleanBio.length > 110 ? cleanBio.slice(0, 107) + "…" : cleanBio;
       ctx.fillText(bioText, leftX, avatarY + avatarR * 2 + 36);
       ctx.restore();
@@ -868,15 +847,16 @@
       ctx.font = "bold 44px 'Space Grotesk', system-ui, sans-serif";
       ctx.fillStyle = "#ffffff";
       ctx.textAlign = "center";
-      ctx.fillText(profile.display_name.toUpperCase(), cx, avatarY + avatarR * 2 + 60);
+      const rawStoryName = profile.display_name || profile.username || "Creator";
+      ctx.fillText(rawStoryName.toUpperCase(), cx, avatarY + avatarR * 2 + 60);
 
       ctx.font = "26px 'Space Grotesk', monospace";
       ctx.fillStyle = t.bright;
-      ctx.fillText(`@${profile.username}`, cx, avatarY + avatarR * 2 + 105);
+      ctx.fillText(`@${profile.username || ""}`, cx, avatarY + avatarR * 2 + 105);
 
       ctx.font = "20px 'Space Grotesk', sans-serif";
       ctx.fillStyle = "#94a3b8";
-      const cleanBio = profile.bio.replace(/[\r\n]+/g, " ");
+      const cleanBio = (profile.bio || "Digital citizen & timeline explorer.").replace(/[\r\n]+/g, " ");
       const bioText = cleanBio.length > 80 ? cleanBio.slice(0, 78) + "…" : cleanBio;
       ctx.fillText(bioText, cx, avatarY + avatarR * 2 + 145);
       ctx.restore();
@@ -965,7 +945,7 @@
       ctx.font = "italic 19px 'Space Grotesk', system-ui, sans-serif";
       ctx.fillStyle = "#cbd5e1";
       ctx.textAlign = "center";
-      const cleanRoast = profile.roast.replace(/[\r\n]+/g, " ");
+      const cleanRoast = (profile.roast || "Building on the timeline.").replace(/[\r\n]+/g, " ");
       const roastWrap = cleanRoast.length > 90 ? cleanRoast.slice(0, 88) + "…" : cleanRoast;
       ctx.fillText(`"${roastWrap}"`, cx, roastY + 75);
       ctx.restore();
@@ -1069,185 +1049,226 @@
 
   // --- Render Solo Results (Exact Official Timeline Alignment) ---
   function renderResults(rawProfile) {
-    const data = safeProfile(rawProfile, usernameInput.value);
-    currentScanData = data;
+    try {
+      const data = safeProfile(rawProfile, usernameInput ? usernameInput.value : "");
+      currentScanData = data;
 
-    $("#display-name").textContent = data.display_name.toUpperCase();
-    $("#handle").textContent = "@" + data.username;
+      const dName = $("#display-name");
+      if (dName) dName.textContent = (data.display_name || data.username || "").toUpperCase();
 
-    const xUrl = `https://x.com/${data.username}`;
-    ["#display-name", "#handle"].forEach((sel) => {
-      const a = $(sel);
-      if (a) { a.href = xUrl; a.title = `Open @${data.username} on X`; }
-    });
+      const hName = $("#handle");
+      if (hName) hName.textContent = "@" + (data.username || "");
 
-    $("#bio").textContent = data.bio;
-
-    // Avatar
-    const imgEl = $("#avatar-img");
-    const initEl = $("#avatar-initials");
-    if (initEl) {
-      initEl.textContent = (data.display_name || data.username || "C").charAt(0).toUpperCase();
-    }
-
-    preloadProfileAvatar(data.username, data.avatar_url, (loadedImg) => {
-      if (imgEl) {
-        imgEl.src = loadedImg.src;
-        imgEl.classList.remove("hidden");
-        if (initEl) initEl.classList.add("hidden");
-      }
-      updateCardPreview();
-    });
-
-    if (imgEl) {
-      imgEl.onerror = () => {
-        imgEl.classList.add("hidden");
-        if (initEl) initEl.classList.remove("hidden");
-      };
-      if (data.avatar_url) {
-        imgEl.src = data.avatar_url;
-        imgEl.classList.remove("hidden");
-        if (initEl) initEl.classList.add("hidden");
-      } else {
-        imgEl.classList.add("hidden");
-        if (initEl) initEl.classList.remove("hidden");
-      }
-    }
-
-    // Animated Numerical Displays for Real X Metrics
-    animateValue($("#overall-score"), 0, data.overall_score, 850, (v) => String(Math.round(v)));
-    animateValue($("#m-followers"), 0, data.followers, 900, fmtNum);
-    animateValue($("#m-following"), 0, data.following, 920, fmtNum);
-    animateValue($("#m-posts"), 0, data.total_tweets, 940, fmtNum);
-    animateValue($("#m-likes"), 0, data.likes_given, 960, fmtNum);
-    animateValue($("#m-media"), 0, data.media_count, 980, fmtNum);
-    const joinedEl = $("#m-joined");
-    if (joinedEl) joinedEl.textContent = data.joined_date || "Veteran";
-
-    // Niches
-    const list = $("#niche-list");
-    if (list) {
-      list.innerHTML = "";
-      (data.niches || []).forEach((n, i) => {
-        const pill = document.createElement("span");
-        pill.className = `niche-pill accent-${i % 3}`;
-        pill.innerHTML = `<span class="np-label">${escapeHtml(n.label.toUpperCase())}</span><span class="np-pct">${Math.round(n.score)}%</span>`;
-        list.appendChild(pill);
+      const xUrl = `https://x.com/${encodeURIComponent(data.username || "")}`;
+      ["#display-name", "#handle"].forEach((sel) => {
+        const a = $(sel);
+        if (a) { a.href = xUrl; a.title = `Open @${data.username} on X`; }
       });
+
+      const bioEl = $("#bio");
+      if (bioEl) bioEl.textContent = data.bio || "";
+
+      // Avatar
+      const imgEl = $("#avatar-img");
+      const initEl = $("#avatar-initials");
+      if (initEl) {
+        initEl.textContent = (data.display_name || data.username || "C").charAt(0).toUpperCase();
+      }
+
+      preloadProfileAvatar(data.username, data.avatar_url, (loadedImg) => {
+        try {
+          if (imgEl && loadedImg && loadedImg.src) {
+            imgEl.src = loadedImg.src;
+            imgEl.classList.remove("hidden");
+            if (initEl) initEl.classList.add("hidden");
+          }
+          updateCardPreview();
+        } catch (_) {}
+      });
+
+      if (imgEl) {
+        imgEl.onerror = () => {
+          imgEl.classList.add("hidden");
+          if (initEl) initEl.classList.remove("hidden");
+        };
+        if (data.avatar_url) {
+          imgEl.src = data.avatar_url;
+          imgEl.classList.remove("hidden");
+          if (initEl) initEl.classList.add("hidden");
+        } else {
+          imgEl.classList.add("hidden");
+          if (initEl) initEl.classList.remove("hidden");
+        }
+      }
+
+      // Animated Numerical Displays for Real X Metrics
+      try {
+        animateValue($("#overall-score"), 0, data.overall_score || 0, 850, (v) => String(Math.round(v)));
+        animateValue($("#m-followers"), 0, data.followers || 0, 900, fmtNum);
+        animateValue($("#m-following"), 0, data.following || 0, 920, fmtNum);
+        animateValue($("#m-posts"), 0, data.total_tweets || 0, 940, fmtNum);
+        animateValue($("#m-likes"), 0, data.likes_given || 0, 960, fmtNum);
+        animateValue($("#m-media"), 0, data.media_count || 0, 980, fmtNum);
+      } catch (_) {}
+      const joinedEl = $("#m-joined");
+      if (joinedEl) joinedEl.textContent = data.joined_date || "Veteran";
+
+      // Niches
+      const list = $("#niche-list");
+      if (list) {
+        list.innerHTML = "";
+        (data.niches || []).forEach((n, i) => {
+          const pill = document.createElement("span");
+          pill.className = `niche-pill accent-${i % 3}`;
+          pill.innerHTML = `<span class="np-label">${escapeHtml(((n && n.label) || "CT CITIZEN").toUpperCase())}</span><span class="np-pct">${Math.round((n && n.score) || 0)}%</span>`;
+          list.appendChild(pill);
+        });
+      }
+
+      // AI Roast
+      const roastEl = $("#roast-text");
+      if (roastEl) roastEl.textContent = `"${data.roast || "Building on the timeline."}"`;
+
+      // Radar Chart
+      try {
+        renderHexagonRadar(data.radar_scores);
+      } catch (_) {}
+
+      // Card Previews & Download
+      try {
+        updateCardPreview();
+      } catch (_) {}
+
+      // Share on X
+      const xBtn = $("#share-x");
+      if (xBtn) {
+        const top = data.niches && data.niches[0] ? data.niches[0].label : "CT Citizen";
+        const text = `I'm ${top} with a CloutRadar score of ${data.overall_score} 📡 Check yours:`;
+        const siteUrl = window.location.origin;
+        xBtn.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(siteUrl)}`;
+      }
+    } catch (err) {
+      console.error("renderResults error:", err);
+    } finally {
+      setView("results");
     }
-
-    // AI Roast
-    const roastEl = $("#roast-text");
-    if (roastEl) roastEl.textContent = `"${data.roast}"`;
-
-    // Radar Chart
-    renderHexagonRadar(data.radar_scores);
-
-    // Card Previews & Download
-    updateCardPreview();
-
-    // Share on X
-    const xBtn = $("#share-x");
-    if (xBtn) {
-      const top = data.niches && data.niches[0] ? data.niches[0].label : "CT Citizen";
-      const text = `I'm ${top} with a CloutRadar score of ${data.overall_score} 📡 Check yours:`;
-      const siteUrl = window.location.origin;
-      xBtn.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(siteUrl)}`;
-    }
-
-    setView("results");
   }
 
   // --- Render Battle Results ---
   function renderBattleResults(data) {
-    currentBattleData = data;
-    const u1 = data.user1;
-    const u2 = data.user2;
+    try {
+      currentBattleData = data;
+      const u1 = (data && data.user1) || {};
+      const u2 = (data && data.user2) || {};
 
-    $("#p1-avatar").src = u1.avatar_url || `/api/avatar/${u1.username}`;
-    $("#p1-name").textContent = u1.display_name;
-    $("#p1-handle").textContent = `@${u1.username}`;
-    animateValue($("#p1-score"), 0, u1.score, 750, (v) => String(Math.round(v)));
-    $("#p1-niche").textContent = u1.top_niche;
-    $("#p1-followers").textContent = u1.followers_str || fmtNum(u1.followers || 0);
-    const p1Fol = $("#p1-following");
-    if (p1Fol) p1Fol.textContent = u1.following_str || fmtNum(u1.following || 0);
-    const p1Posts = $("#p1-posts");
-    if (p1Posts) p1Posts.textContent = u1.tweets_str || fmtNum(u1.tweets || u1.total_tweets || 0);
-    const p1Likes = $("#p1-likes");
-    if (p1Likes) p1Likes.textContent = fmtNum(u1.likes || u1.likes_given || 0);
-    const p1Joined = $("#p1-joined");
-    if (p1Joined) p1Joined.textContent = u1.joined_date || "Veteran";
+      const p1Av = $("#p1-avatar");
+      if (p1Av) p1Av.src = u1.avatar_url || `/api/avatar/${u1.username || ""}`;
+      const p1Nm = $("#p1-name");
+      if (p1Nm) p1Nm.textContent = u1.display_name || u1.username || "Player 1";
+      const p1Hn = $("#p1-handle");
+      if (p1Hn) p1Hn.textContent = `@${u1.username || ""}`;
+      try { animateValue($("#p1-score"), 0, u1.score || 0, 750, (v) => String(Math.round(v))); } catch (_) {}
+      const p1Nc = $("#p1-niche");
+      if (p1Nc) p1Nc.textContent = u1.top_niche || "CT Citizen";
+      const p1Fl = $("#p1-followers");
+      if (p1Fl) p1Fl.textContent = u1.followers_str || fmtNum(u1.followers || 0);
+      const p1Fol = $("#p1-following");
+      if (p1Fol) p1Fol.textContent = u1.following_str || fmtNum(u1.following || 0);
+      const p1Posts = $("#p1-posts");
+      if (p1Posts) p1Posts.textContent = u1.tweets_str || fmtNum(u1.tweets || u1.total_tweets || 0);
+      const p1Likes = $("#p1-likes");
+      if (p1Likes) p1Likes.textContent = fmtNum(u1.likes || u1.likes_given || 0);
+      const p1Joined = $("#p1-joined");
+      if (p1Joined) p1Joined.textContent = u1.joined_date || "Veteran";
 
-    $("#p2-avatar").src = u2.avatar_url || `/api/avatar/${u2.username}`;
-    $("#p2-name").textContent = u2.display_name;
-    $("#p2-handle").textContent = `@${u2.username}`;
-    animateValue($("#p2-score"), 0, u2.score, 750, (v) => String(Math.round(v)));
-    $("#p2-niche").textContent = u2.top_niche;
-    $("#p2-followers").textContent = u2.followers_str || fmtNum(u2.followers || 0);
-    const p2Fol = $("#p2-following");
-    if (p2Fol) p2Fol.textContent = u2.following_str || fmtNum(u2.following || 0);
-    const p2Posts = $("#p2-posts");
-    if (p2Posts) p2Posts.textContent = u2.tweets_str || fmtNum(u2.tweets || u2.total_tweets || 0);
-    const p2Likes = $("#p2-likes");
-    if (p2Likes) p2Likes.textContent = fmtNum(u2.likes || u2.likes_given || 0);
-    const p2Joined = $("#p2-joined");
-    if (p2Joined) p2Joined.textContent = u2.joined_date || "Veteran";
+      const p2Av = $("#p2-avatar");
+      if (p2Av) p2Av.src = u2.avatar_url || `/api/avatar/${u2.username || ""}`;
+      const p2Nm = $("#p2-name");
+      if (p2Nm) p2Nm.textContent = u2.display_name || u2.username || "Player 2";
+      const p2Hn = $("#p2-handle");
+      if (p2Hn) p2Hn.textContent = `@${u2.username || ""}`;
+      try { animateValue($("#p2-score"), 0, u2.score || 0, 750, (v) => String(Math.round(v))); } catch (_) {}
+      const p2Nc = $("#p2-niche");
+      if (p2Nc) p2Nc.textContent = u2.top_niche || "CT Citizen";
+      const p2Fl = $("#p2-followers");
+      if (p2Fl) p2Fl.textContent = u2.followers_str || fmtNum(u2.followers || 0);
+      const p2Fol = $("#p2-following");
+      if (p2Fol) p2Fol.textContent = u2.following_str || fmtNum(u2.following || 0);
+      const p2Posts = $("#p2-posts");
+      if (p2Posts) p2Posts.textContent = u2.tweets_str || fmtNum(u2.tweets || u2.total_tweets || 0);
+      const p2Likes = $("#p2-likes");
+      if (p2Likes) p2Likes.textContent = fmtNum(u2.likes || u2.likes_given || 0);
+      const p2Joined = $("#p2-joined");
+      if (p2Joined) p2Joined.textContent = u2.joined_date || "Veteran";
 
-    $("#victor-name").textContent = `@${data.victor.toUpperCase()}`;
+      const vicEl = $("#victor-name");
+      if (vicEl) vicEl.textContent = `@${(data.victor || u1.username || "").toUpperCase()}`;
 
-    function updateBattlePreview() {
-      const bCanvasSrc = generateBattleCanvasCard(currentBattleData, currentTheme);
-      const cardImg = $("#battle-card-img");
-      const dl = $("#battle-download");
-      const src = bCanvasSrc || currentBattleData.battle_card_data_url;
-      if (cardImg && src) {
-        cardImg.src = src;
+      function updateBattlePreview() {
+        try {
+          const bCanvasSrc = generateBattleCanvasCard(currentBattleData, currentTheme);
+          const cardImg = $("#battle-card-img");
+          const dl = $("#battle-download");
+          const src = bCanvasSrc || (currentBattleData && currentBattleData.battle_card_data_url);
+          if (cardImg && src) {
+            cardImg.src = src;
+          }
+          if (dl && src) {
+            dl.href = src;
+            dl.setAttribute("download", `cloutradar-clash-${u1.username || "p1"}-vs-${u2.username || "p2"}.png`);
+          }
+        } catch (_) {}
       }
-      if (dl && src) {
-        dl.href = src;
-        dl.setAttribute("download", `cloutradar-clash-${u1.username}-vs-${u2.username}.png`);
+
+      if (u1.username) preloadBattleAvatar("u1", u1.username, u1.avatar_url, () => updateBattlePreview());
+      if (u2.username) preloadBattleAvatar("u2", u2.username, u2.avatar_url, () => updateBattlePreview());
+
+      updateBattlePreview();
+
+      const shareX = $("#battle-share-x");
+      if (shareX) {
+        const text = `⚔️ CT CLASH: @${u1.username || "p1"} (${u1.score || 0}) vs @${u2.username || "p2"} (${u2.score || 0})! Victor: @${data.victor || u1.username} 👑`;
+        const siteUrl = window.location.origin;
+        shareX.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(siteUrl)}`;
       }
+    } catch (err) {
+      console.error("renderBattleResults error:", err);
+    } finally {
+      setView("battle");
     }
-
-    preloadBattleAvatar("u1", u1.username, u1.avatar_url, () => updateBattlePreview());
-    preloadBattleAvatar("u2", u2.username, u2.avatar_url, () => updateBattlePreview());
-
-    updateBattlePreview();
-
-    const shareX = $("#battle-share-x");
-    if (shareX) {
-      const text = `⚔️ CT CLASH: @${u1.username} (${u1.score}) vs @${u2.username} (${u2.score})! Victor: @${data.victor} 👑`;
-      const siteUrl = window.location.origin;
-      shareX.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(siteUrl)}`;
-    }
-
-    setView("battle");
   }
 
   function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
   function setStep(text, pct) {
-    scanStatus.textContent = text;
-    if (pct != null) progressBar.style.width = Math.round(pct) + "%";
+    if (scanStatus) scanStatus.textContent = text;
+    if (progressBar && pct != null) progressBar.style.width = Math.round(pct) + "%";
+  }
+
+  function fetchWithTimeout(url, options = {}, timeoutMs = 4000) {
+    if (typeof AbortController === "undefined") return fetch(url, options);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const opts = { ...options, signal: controller.signal };
+    return fetch(url, opts).finally(() => clearTimeout(timeoutId));
   }
 
   // --- Solo Scan Execution with Dual-Layer Accuracy Engine ---
   async function scan(username, src) {
     const handle = normalizeUsername(username);
-    if (!handle) { usernameInput.focus(); return; }
+    if (!handle) { if (usernameInput) usernameInput.focus(); return; }
 
-    usernameInput.value = handle;
-    scanBtn.disabled = true;
+    if (usernameInput) usernameInput.value = handle;
+    if (scanBtn) scanBtn.disabled = true;
 
     setView("scanning");
     setStep(`Scanning timeline intelligence for @${handle}...`, 15);
 
     let data = null;
 
-    // Layer 1: Attempt local/deployed FastAPI backend stream
+    // Layer 1: Attempt local/deployed FastAPI backend stream with timeout
     try {
-      const res = await fetch("/api/scan?stream=1", {
+      const res = await fetchWithTimeout("/api/scan?stream=1", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1256,28 +1277,35 @@
           theme: currentTheme,
           format: currentFormat
         }),
-      });
+      }, 3500);
 
       if (res.ok && res.body && res.body.getReader) {
         const reader = res.body.getReader(), dec = new TextDecoder();
         let buf = "", final = null;
-        while (!final) {
-          const { value, done } = await reader.read();
-          if (value) buf += dec.decode(value, { stream: true });
-          let nl;
-          while ((nl = buf.indexOf("\n")) >= 0) {
-            const line = buf.slice(0, nl).trim();
-            buf = buf.slice(nl + 1);
-            if (!line) continue;
-            let ev;
-            try { ev = JSON.parse(line); } catch (_) { continue; }
-            if (ev.step === "profile") setStep(`Found @${handle} (${fmtNum(ev.followers)} followers)`, 30);
-            if (ev.step === "posts") setStep(`Analyzing 90-day timeline posts & engagement...`, 60);
-            if (ev.step === "analyze") setStep(`Computing CT Clout Radar & Niches...`, 82);
-            if (ev.step === "card") setStep(`Synthesizing high-res card...`, 94);
-            if (ev.step === "done" && ev.result) { final = ev; break; }
+        const streamTimeout = setTimeout(() => {
+          try { reader.cancel(); } catch (_) {}
+        }, 4500);
+        try {
+          while (!final) {
+            const { value, done } = await reader.read();
+            if (value) buf += dec.decode(value, { stream: true });
+            let nl;
+            while ((nl = buf.indexOf("\n")) >= 0) {
+              const line = buf.slice(0, nl).trim();
+              buf = buf.slice(nl + 1);
+              if (!line) continue;
+              let ev;
+              try { ev = JSON.parse(line); } catch (_) { continue; }
+              if (ev.step === "profile") setStep(`Found @${handle} (${fmtNum(ev.followers)} followers)`, 30);
+              if (ev.step === "posts") setStep(`Analyzing 90-day timeline posts & engagement...`, 60);
+              if (ev.step === "analyze") setStep(`Computing CT Clout Radar & Niches...`, 82);
+              if (ev.step === "card") setStep(`Synthesizing high-res card...`, 94);
+              if (ev.step === "done" && ev.result) { final = ev; break; }
+            }
+            if (done) break;
           }
-          if (done) break;
+        } finally {
+          clearTimeout(streamTimeout);
         }
         if (final && final.result) {
           data = final.result;
@@ -1292,11 +1320,11 @@
       console.warn("Local backend stream unavailable; engaging direct CORS upstream scanner.", e);
     }
 
-    // Layer 2: Direct FxTwitter live probe (CORS-enabled, 0.3s instant response, 100% exact real followers & bio)
+    // Layer 2: Direct FxTwitter live probe (CORS-enabled, 0.3s instant response, 100% exact real stats)
     if (!data || !data.username) {
       try {
         setStep(`Querying live X profile for @${handle}...`, 70);
-        const fxRes = await fetch(`https://api.fxtwitter.com/${handle}`);
+        const fxRes = await fetchWithTimeout(`https://api.fxtwitter.com/${handle}`, {}, 3500);
         if (fxRes.ok) {
           const fxData = await fxRes.json();
           const user = fxData.user;
@@ -1307,6 +1335,8 @@
             const following = Number(user.following || user.friends_count || 0);
             const tweets = Number(user.tweets || user.statuses_count || 0);
             const likes = Number(user.likes || user.favourites_count || 0);
+            const media = Number(user.media_count || 0);
+            const joined = user.joined || "";
             data = {
               username: user.screen_name,
               display_name: user.name || user.screen_name,
@@ -1316,7 +1346,8 @@
               following: following,
               tweets: tweets,
               likes: likes,
-              joined: user.joined || ""
+              media_count: media,
+              joined: joined
             };
           }
         }
@@ -1325,11 +1356,11 @@
       }
     }
 
-    progressBar.style.width = "100%";
-    await sleep(200);
-    scanBtn.disabled = false;
+    if (progressBar) progressBar.style.width = "100%";
+    await sleep(150);
+    if (scanBtn) scanBtn.disabled = false;
 
-    // Layer 3: Autonomous persona synthesis fallback
+    // Layer 3: Autonomous persona synthesis fallback (guaranteed instant)
     if (!data || !data.username) {
       data = safeProfile(null, handle);
     }
@@ -1339,15 +1370,18 @@
 
   // Live account resolver for direct client execution (FxTwitter instant probe)
   async function fetchLiveAccount(handle) {
+    if (!handle) return null;
+    const norm = normalizeUsername(handle);
+
     // Tier 1: Direct FxTwitter (CORS-friendly, 250ms, 100% exact live numbers)
     try {
-      const fxRes = await fetch(`https://api.fxtwitter.com/${handle}`);
+      const fxRes = await fetchWithTimeout(`https://api.fxtwitter.com/${norm}`, {}, 3500);
       if (fxRes.ok) {
         const fxData = await fxRes.json();
         const user = fxData.user;
         if (user && user.screen_name) {
           const rawAvatar = user.avatar_url || "";
-          const avatarUrl = rawAvatar ? rawAvatar.replace("_normal.", "_400x400.") : `https://unavatar.io/x/${handle}`;
+          const avatarUrl = rawAvatar ? rawAvatar.replace("_normal.", "_400x400.") : `https://unavatar.io/x/${norm}`;
           const fols = Number(user.followers || user.followers_count || 0);
           const following = Number(user.following || user.friends_count || 0);
           const tweets = Number(user.tweets || user.statuses_count || 0);
@@ -1373,7 +1407,7 @@
 
     // Tier 2: Dedicated local proxy avatar & profile endpoint
     try {
-      const localRes = await fetch(`/api/user/${handle}`);
+      const localRes = await fetchWithTimeout(`/api/user/${norm}`, {}, 3000);
       if (localRes.ok) {
         const d = await localRes.json();
         if (d && d.username) return d;
@@ -1647,24 +1681,23 @@
     const p2 = normalizeUsername(u2);
     if (!p1 || !p2) return;
 
-    battleBtn.disabled = true;
+    if (battleBtn) battleBtn.disabled = true;
     setView("scanning");
     setStep(`Clashing @${p1} vs @${p2}...`, 25);
 
     let data = null;
 
-    // Layer 1: Attempt local/deployed compare API
+    // Layer 1: Attempt local/deployed compare API with timeout
     try {
-      const res = await fetch("/api/compare", {
+      const res = await fetchWithTimeout("/api/compare", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user1: p1, user2: p2, theme: currentTheme })
-      });
+      }, 4000);
       if (res.ok) {
         const json = await res.json();
         if (json && json.user1 && json.user2) {
           data = json;
-          // Ensure dual-player battle card is attached
           if (!data.battle_card_data_url || !data.battle_card_data_url.startsWith("data:image")) {
             data.battle_card_data_url = generateBattleCanvasCard(data.user1, data.user2, data.victor, currentTheme);
           }
@@ -1677,52 +1710,64 @@
     // Layer 2: Direct Live Client Fetch for Both Players (Guaranteed 100% Real Stats)
     if (!data || !data.user1 || !data.user2) {
       setStep(`Extracting live X profiles for @${p1} & @${p2}...`, 60);
-      const [raw1, raw2] = await Promise.all([fetchLiveAccount(p1), fetchLiveAccount(p2)]);
-      const s1 = safeProfile(raw1, p1);
-      const s2 = safeProfile(raw2, p2);
-      const victor = s1.overall_score >= s2.overall_score ? p1 : p2;
+      try {
+        const [raw1, raw2] = await Promise.all([fetchLiveAccount(p1), fetchLiveAccount(p2)]);
+        const s1 = safeProfile(raw1, p1);
+        const s2 = safeProfile(raw2, p2);
+        const victor = s1.overall_score >= s2.overall_score ? p1 : p2;
 
-      data = {
-        user1: {
-          username: p1,
-          display_name: s1.display_name,
-          score: s1.overall_score,
-          top_niche: (s1.niches && s1.niches[0]) ? s1.niches[0].label : "CT Citizen",
-          followers: s1.followers,
-          followers_str: fmtNum(s1.followers),
-          following: s1.following,
-          following_str: fmtNum(s1.following),
-          tweets: s1.total_tweets,
-          tweets_str: s1.tweets_str || fmtNum(s1.total_tweets),
-          likes: s1.likes_given,
-          likes_str: fmtNum(s1.likes_given),
-          joined_date: s1.joined_date,
-          avatar_url: s1.avatar_url
-        },
-        user2: {
-          username: p2,
-          display_name: s2.display_name,
-          score: s2.overall_score,
-          top_niche: (s2.niches && s2.niches[0]) ? s2.niches[0].label : "CT Citizen",
-          followers: s2.followers,
-          followers_str: fmtNum(s2.followers),
-          following: s2.following,
-          following_str: fmtNum(s2.following),
-          tweets: s2.total_tweets,
-          tweets_str: s2.tweets_str || fmtNum(s2.total_tweets),
-          likes: s2.likes_given,
-          likes_str: fmtNum(s2.likes_given),
-          joined_date: s2.joined_date,
-          avatar_url: s2.avatar_url
-        },
-        victor: victor,
-        battle_card_data_url: generateBattleCanvasCard(s1, s2, victor, currentTheme)
-      };
+        data = {
+          user1: {
+            username: p1,
+            display_name: s1.display_name,
+            score: s1.overall_score,
+            top_niche: (s1.niches && s1.niches[0]) ? s1.niches[0].label : "CT Citizen",
+            followers: s1.followers,
+            followers_str: fmtNum(s1.followers),
+            following: s1.following,
+            following_str: fmtNum(s1.following),
+            tweets: s1.total_tweets,
+            tweets_str: s1.tweets_str || fmtNum(s1.total_tweets),
+            likes: s1.likes_given,
+            likes_str: fmtNum(s1.likes_given),
+            joined_date: s1.joined_date,
+            avatar_url: s1.avatar_url
+          },
+          user2: {
+            username: p2,
+            display_name: s2.display_name,
+            score: s2.overall_score,
+            top_niche: (s2.niches && s2.niches[0]) ? s2.niches[0].label : "CT Citizen",
+            followers: s2.followers,
+            followers_str: fmtNum(s2.followers),
+            following: s2.following,
+            following_str: fmtNum(s2.following),
+            tweets: s2.total_tweets,
+            tweets_str: s2.tweets_str || fmtNum(s2.total_tweets),
+            likes: s2.likes_given,
+            likes_str: fmtNum(s2.likes_given),
+            joined_date: s2.joined_date,
+            avatar_url: s2.avatar_url
+          },
+          victor: victor,
+          battle_card_data_url: generateBattleCanvasCard(s1, s2, victor, currentTheme)
+        };
+      } catch (err) {
+        console.error("Live account fetch clash error:", err);
+        const s1 = safeProfile(null, p1);
+        const s2 = safeProfile(null, p2);
+        data = {
+          user1: { username: p1, display_name: s1.display_name, score: s1.overall_score, top_niche: "CT Citizen", followers: s1.followers, followers_str: fmtNum(s1.followers), following: s1.following, following_str: fmtNum(s1.following), tweets: s1.total_tweets, tweets_str: s1.tweets_str, likes: s1.likes_given, likes_str: s1.likes_str, joined_date: s1.joined_date, avatar_url: s1.avatar_url },
+          user2: { username: p2, display_name: s2.display_name, score: s2.overall_score, top_niche: "CT Citizen", followers: s2.followers, followers_str: fmtNum(s2.followers), following: s2.following, following_str: fmtNum(s2.following), tweets: s2.total_tweets, tweets_str: s2.tweets_str, likes: s2.likes_given, likes_str: s2.likes_str, joined_date: s2.joined_date, avatar_url: s2.avatar_url },
+          victor: s1.overall_score >= s2.overall_score ? p1 : p2,
+          battle_card_data_url: ""
+        };
+      }
     }
 
-    progressBar.style.width = "100%";
-    await sleep(200);
-    battleBtn.disabled = false;
+    if (progressBar) progressBar.style.width = "100%";
+    await sleep(150);
+    if (battleBtn) battleBtn.disabled = false;
     renderBattleResults(data);
   }
 

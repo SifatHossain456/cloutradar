@@ -87,12 +87,12 @@ class TestCloutRadar(unittest.TestCase):
         resp_csv = self.client.get("/api/stats.csv")
         self.assertEqual(resp_csv.status_code, 200)
 
-    def test_08_xlee_and_fallback_resilience(self):
-        # Test xlee_istheking (the demo chip that previously 404ed)
-        resp1 = self.client.post("/api/scan", json={"username": "xlee_istheking", "theme": "cyber_violet"})
+    def test_08_curated_and_fallback_resilience(self):
+        # Test curated creator profile
+        resp1 = self.client.post("/api/scan", json={"username": "karpathy", "theme": "cyber_violet"})
         self.assertEqual(resp1.status_code, 200)
         d1 = resp1.json()
-        self.assertEqual(d1["username"], "xlee_istheking")
+        self.assertEqual(d1["username"], "karpathy")
         self.assertTrue(d1["card_data_url"].startswith("data:image/png;base64,"))
         self.assertGreater(d1["followers"], 1000)
 
