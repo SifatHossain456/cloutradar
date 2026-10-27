@@ -6,6 +6,7 @@ import json
 import base64
 import urllib.request
 from typing import Optional, List, Dict, Any
+from datetime import datetime
 
 from fastapi import FastAPI, Request, Response, HTTPException, Query
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, RedirectResponse, FileResponse
@@ -517,7 +518,7 @@ def fetch_avatar_img(avatar_url: str, username: str = "") -> Optional[Image.Imag
             pass
     return None
 
-def generate_landscape_card(username: str, display_name: str, bio: str, niches: list, overall_score: int, followers_str: str, er_str: str, imp_str: str, basis_str: str = "last 90d · 46 posts", theme_name: str = "cyber_violet", avatar_url: str = "", roast: str = "") -> str:
+def generate_landscape_card(username: str, display_name: str, bio: str, niches: list, overall_score: int, followers_str: str, er_str: str = "", imp_str: str = "", basis_str: str = "", theme_name: str = "cyber_violet", avatar_url: str = "", roast: str = "", following_str: str = "", tweets_str: str = "") -> str:
     try:
         theme = THEMES.get(theme_name, THEMES["cyber_violet"])
         W, H = 1200, 675
@@ -640,14 +641,19 @@ def generate_landscape_card(username: str, display_name: str, bio: str, niches: 
 
         draw.text((z2_x, 495), "CLOUTRADAR // CT INTEL", fill=(107, 98, 128), font=font_med)
 
-        # Zone 3: Metrics
+        # Zone 3: Metrics (100% Real Twitter Data)
         z3_x = 840
-        draw_tag(z3_x, 70, "Radar Intel")
+        draw_tag(z3_x, 70, "Real X Metrics")
+
+        lbl2 = "Following" if following_str else "Engagement rate"
+        val2 = following_str or er_str
+        lbl3 = "Total Posts" if tweets_str else "Impressions"
+        val3 = tweets_str or imp_str
 
         m_items = [
             (followers_str, "Followers"),
-            (er_str, "Engagement rate"),
-            (imp_str, "Impressions")
+            (val2, lbl2),
+            (val3, lbl3)
         ]
         m_y = 145
         for val, lbl in m_items:
@@ -665,7 +671,7 @@ def generate_landscape_card(username: str, display_name: str, bio: str, niches: 
     except Exception:
         return ""
 
-def generate_story_card(username: str, display_name: str, bio: str, niches: list, overall_score: int, followers_str: str, er_str: str, imp_str: str, theme_name: str = "cyber_violet", avatar_url: str = "", roast: str = "") -> str:
+def generate_story_card(username: str, display_name: str, bio: str, niches: list, overall_score: int, followers_str: str, er_str: str = "", imp_str: str = "", theme_name: str = "cyber_violet", avatar_url: str = "", roast: str = "", following_str: str = "", tweets_str: str = "") -> str:
     try:
         theme = THEMES.get(theme_name, THEMES["cyber_violet"])
         W, H = 1080, 1920
@@ -718,7 +724,11 @@ def generate_story_card(username: str, display_name: str, bio: str, niches: list
 
         m_y = 1360
         col_w = (W - 240 - 40) // 3
-        m_items = [(followers_str, "Followers"), (er_str, "Eng Rate"), (imp_str, "Impressions")]
+        lbl2 = "Following" if following_str else "Eng Rate"
+        val2 = following_str or er_str
+        lbl3 = "Posts" if tweets_str else "Impressions"
+        val3 = tweets_str or imp_str
+        m_items = [(followers_str, "Followers"), (val2, lbl2), (val3, lbl3)]
         for i, (val, lbl) in enumerate(m_items):
             mx = 120 + i * (col_w + 20)
             draw.rounded_rectangle([mx, m_y, mx + col_w, m_y + 150], radius=20, fill=(25, 22, 40, 200), outline=theme["border"], width=1)
@@ -927,7 +937,9 @@ def build_full_profile_result(user_info: dict, theme: str) -> dict:
         basis_str=basis_str,
         theme_name=theme,
         avatar_url=user_info.get("avatar_url", ""),
-        roast=roast
+        roast=roast,
+        following_str=following_str,
+        tweets_str=tweets_str
     )
     story_b64 = generate_story_card(
         username=user_info["screen_name"],
@@ -940,7 +952,9 @@ def build_full_profile_result(user_info: dict, theme: str) -> dict:
         imp_str=imp_str,
         theme_name=theme,
         avatar_url=user_info.get("avatar_url", ""),
-        roast=roast
+        roast=roast,
+        following_str=following_str,
+        tweets_str=tweets_str
     )
     now_ts = int(time.time())
     return {
@@ -1182,9 +1196,15 @@ async def compare_accounts(req: CompareRequest):
         "top_niche": res1["niches"][0]["label"] if res1["niches"] else "General",
         "followers": res1.get("followers", 0),
         "followers_str": res1.get("followers_str", fmt_metric(res1.get("followers", 0))),
+        "following": res1.get("following", 0),
+        "following_str": res1.get("following_str", fmt_metric(res1.get("following", 0))),
+        "tweets": res1.get("total_tweets", 0),
+        "tweets_str": res1.get("tweets_str", "—"),
+        "likes": res1.get("likes_given", 0),
+        "likes_str": fmt_metric(res1.get("likes_given", 0)),
+        "joined_date": res1.get("joined_era", "Veteran"),
         "er_str": res1.get("er_str", "4.2%"),
         "impressions_str": fmt_metric(res1.get("impressions", 0)),
-        "tweets_str": res1.get("tweets_str", "—"),
         "radar": res1.get("radar_scores", {})
     }
 
@@ -1196,9 +1216,15 @@ async def compare_accounts(req: CompareRequest):
         "top_niche": res2["niches"][0]["label"] if res2["niches"] else "General",
         "followers": res2.get("followers", 0),
         "followers_str": res2.get("followers_str", fmt_metric(res2.get("followers", 0))),
+        "following": res2.get("following", 0),
+        "following_str": res2.get("following_str", fmt_metric(res2.get("following", 0))),
+        "tweets": res2.get("total_tweets", 0),
+        "tweets_str": res2.get("tweets_str", "—"),
+        "likes": res2.get("likes_given", 0),
+        "likes_str": fmt_metric(res2.get("likes_given", 0)),
+        "joined_date": res2.get("joined_era", "Veteran"),
         "er_str": res2.get("er_str", "4.2%"),
         "impressions_str": fmt_metric(res2.get("impressions", 0)),
-        "tweets_str": res2.get("tweets_str", "—"),
         "radar": res2.get("radar_scores", {})
     }
 
